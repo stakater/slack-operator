@@ -1,0 +1,6 @@
+domain: stakater.com
+layout: go.kubebuilder.io/v2
+repo: github.com/stakater/slack-operator
+version: 3-alpha
+plugins:
+  go.operator-sdk.io/v2-alpha: {}
