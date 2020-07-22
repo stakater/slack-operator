@@ -1,0 +1,7 @@
+apiVersion: slack.stakater.com/v1alpha1
+kind: Channel
+metadata:
+  name: channel-sample
+spec:
+  # Add fields here
+  foo: bar
