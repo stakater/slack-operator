@@ -20,22 +20,31 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-
 // ChannelSpec defines the desired state of Channel
 type ChannelSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// Name of the slack channel
+	Name string `json:"name"`
 
-	// Foo is an example field of Channel. Edit Channel_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	// Make the channel private or public
+	Private bool `json:"private,omitempty"`
+
+	// List of user IDs of the users to invite
+	Users []string `json:"users,omitempty"`
+
+	// Description of the channel
+	Description string `json:"description,omitempty"`
+
+	// Topic of the channel
+	Topic string `json:"topic,omitempty"`
 }
 
 // ChannelStatus defines the observed state of Channel
 type ChannelStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// ID of the slack channel
+	ID string `json:"id"`
+
+	// Error message if any error has occurred
+	Error string `json:"error,omitempty"`
 }
 
 // +kubebuilder:object:root=true

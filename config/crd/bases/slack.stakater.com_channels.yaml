@@ -36,13 +36,37 @@ spec:
         spec:
           description: ChannelSpec defines the desired state of Channel
           properties:
-            foo:
-              description: Foo is an example field of Channel. Edit Channel_types.go
-                to remove/update
+            description:
+              description: Description of the channel
               type: string
+            name:
+              description: Name of the slack channel
+              type: string
+            private:
+              description: Make the channel private or public
+              type: boolean
+            topic:
+              description: Topic of the channel
+              type: string
+            users:
+              description: List of user IDs of the users to invite
+              items:
+                type: string
+              type: array
+          required:
+          - name
           type: object
         status:
           description: ChannelStatus defines the observed state of Channel
+          properties:
+            error:
+              description: Error message if any error has occurred
+              type: string
+            id:
+              description: ID of the slack channel
+              type: string
+          required:
+          - id
           type: object
       type: object
   version: v1alpha1
