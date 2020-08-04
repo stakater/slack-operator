@@ -62,7 +62,6 @@ func (r *ChannelReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	}
 
 	name := channel.Spec.Name
-	//TODO: make private immutable in validation
 	isPrivate := channel.Spec.Private
 
 	if channel.Status.ID == "" {
@@ -75,7 +74,7 @@ func (r *ChannelReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			channel.Status.Error = err.Error()
 			return ctrl.Result{}, nil
 		}
-		channel.Status.ID = channelID.Get()
+		channel.Status.ID = *channelID
 
 		err = r.Status().Update(ctx, channel)
 		if err != nil {
@@ -91,8 +90,8 @@ func (r *ChannelReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 // TODO: too verbose code for error checking
 // TODO: send request only if data is different
 func (r *ChannelReconciler) updateSlackChannel(ctx context.Context, channel *slackv1alpha1.Channel) (ctrl.Result, error) {
-	channelID := slack.NewChannelID(channel.Status.ID)
-	log := r.Log.WithValues("channelID", channelID.Get())
+	channelID := channel.Status.ID
+	log := r.Log.WithValues("channelID", channelID)
 
 	log.Info("Updating channel details")
 
