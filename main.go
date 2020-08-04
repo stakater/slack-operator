@@ -29,6 +29,7 @@ import (
 
 	slackv1alpha1 "github.com/stakater/slack-operator/api/v1alpha1"
 	"github.com/stakater/slack-operator/controllers"
+	slack "github.com/stakater/slack-operator/pkg/slack"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -68,12 +69,20 @@ func main() {
 	}
 
 	if err = (&controllers.ChannelReconciler{
-		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("Channel"),
-		Scheme: mgr.GetScheme(),
+		Client:       mgr.GetClient(),
+		Log:          ctrl.Log.WithName("controllers").WithName("Channel"),
+		Scheme:       mgr.GetScheme(),
+		SlackService: slack.New("", ctrl.Log.WithName("service").WithName("Slack")), //TODO: get from config
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Channel")
 		os.Exit(1)
+	}
+
+	if os.Getenv("ENABLE_WEBHOOKS") != "false" {
+		if err = (&slackv1alpha1.Channel{}).SetupWebhookWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to create webhook", "webhook", "Channel")
+			os.Exit(1)
+		}
 	}
 	// +kubebuilder:scaffold:builder
 
