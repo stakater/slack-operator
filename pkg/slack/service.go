@@ -5,44 +5,51 @@ import (
 	"github.com/slack-go/slack"
 )
 
-// Service structure
-type Service struct {
-	Log      logr.Logger
-	APIToken string
+// Service interface
+type Service interface {
+	CreateChannel(string, bool) (*string, error)
+	SetDescription(string, string) error
+	SetTopic(string, string) error
+	RenameChannel(string, string) error
+	InviteUsers(string, []string) error
 }
 
-var api *slack.Client
+// SlackService structure
+type SlackService struct {
+	log logr.Logger
+	api *slack.Client
+}
 
-func (s *Service) init() {
-	if api == nil {
-		api = slack.New(s.APIToken)
+// New creates a new SlackService
+func New(APIToken string, logger logr.Logger) *SlackService {
+	return &SlackService{
+		api: slack.New(APIToken),
+		log: logger,
 	}
 }
 
 // CreateChannel creates a public or private channel on slack with the given name
-func (s *Service) CreateChannel(name string, isPrivate bool) (*string, error) {
-	s.Log.Info("Creating Slack Channel", "name", name, "isPrivate", isPrivate)
-	s.init()
+func (s *SlackService) CreateChannel(name string, isPrivate bool) (*string, error) {
+	s.log.Info("Creating Slack Channel", "name", name, "isPrivate", isPrivate)
 
-	channel, err := api.CreateConversation(name, isPrivate)
+	channel, err := s.api.CreateConversation(name, isPrivate)
 	if err != nil {
-		s.Log.Error(err, "Error Creating channel", "name", name)
+		s.log.Error(err, "Error Creating channel", "name", name)
 		return nil, err
 	}
 
-	s.Log.V(1).Info("Created Slack Channel", "channel", channel)
+	s.log.V(1).Info("Created Slack Channel", "channel", channel)
 
 	return &channel.ID, nil
 }
 
 // SetDescription sets description/"purpose" of the slack channel
-func (s *Service) SetDescription(channelID string, description string) error {
-	log := s.Log.WithValues("channelID", channelID)
-	s.init()
+func (s *SlackService) SetDescription(channelID string, description string) error {
+	log := s.log.WithValues("channelID", channelID)
 
 	log.V(1).Info("Setting Description of the Slack Channel")
 
-	_, err := api.SetPurposeOfConversation(channelID, description)
+	_, err := s.api.SetPurposeOfConversation(channelID, description)
 
 	if err != nil {
 		log.Error(err, "Error setting description of the channel")
@@ -52,13 +59,12 @@ func (s *Service) SetDescription(channelID string, description string) error {
 }
 
 // SetTopic sets "topic" of the slack channel
-func (s *Service) SetTopic(channelID string, topic string) error {
-	log := s.Log.WithValues("channelID", channelID)
-	s.init()
+func (s *SlackService) SetTopic(channelID string, topic string) error {
+	log := s.log.WithValues("channelID", channelID)
 
 	log.V(1).Info("Setting Topic of the Slack Channel")
 
-	_, err := api.SetTopicOfConversation(channelID, topic)
+	_, err := s.api.SetTopicOfConversation(channelID, topic)
 
 	if err != nil {
 		log.Error(err, "Error setting topic of the channel")
@@ -68,13 +74,12 @@ func (s *Service) SetTopic(channelID string, topic string) error {
 }
 
 // RenameChannel renames the slack channel
-func (s *Service) RenameChannel(channelID string, name string) error {
-	log := s.Log.WithValues("channelID", channelID)
-	s.init()
+func (s *SlackService) RenameChannel(channelID string, newName string) error {
+	log := s.log.WithValues("channelID", channelID)
 
-	log.V(1).Info("Renaming Slack Channel", "name", name)
+	log.V(1).Info("Renaming Slack Channel", "newName", newName)
 
-	_, err := api.RenameConversation(channelID, name)
+	_, err := s.api.RenameConversation(channelID, newName)
 
 	if err != nil {
 		log.Error(err, "Error renaming channel")
@@ -84,20 +89,19 @@ func (s *Service) RenameChannel(channelID string, name string) error {
 }
 
 // InviteUsers invites users to the slack channel
-func (s *Service) InviteUsers(channelID string, userEmails []string) error {
-	log := s.Log.WithValues("channelID", channelID)
-	s.init()
+func (s *SlackService) InviteUsers(channelID string, userEmails []string) error {
+	log := s.log.WithValues("channelID", channelID)
 
 	for _, email := range userEmails {
-		user, err := api.GetUserByEmail(email)
+		user, err := s.api.GetUserByEmail(email)
 
 		if err != nil {
-			s.Log.Error(err, "Error getting user by email")
+			log.Error(err, "Error getting user by email")
 			return err
 		}
 
 		log.V(1).Info("Inviting user to Slack Channel", "userID", user.ID)
-		_, err = api.InviteUsersToConversation(channelID, user.ID)
+		_, err = s.api.InviteUsersToConversation(channelID, user.ID)
 
 		if err != nil {
 			log.Error(err, "Error Inviting user to channel", "userID", user.ID)
