@@ -17,11 +17,15 @@ limitations under the License.
 package controllers
 
 import (
+	"context"
 	"path/filepath"
 	"testing"
 
+	"github.com/bombsimon/logrusr"
+	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -31,6 +35,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	slackv1alpha1 "github.com/stakater/slack-operator/api/v1alpha1"
+	controllerUtil "github.com/stakater/slack-operator/controllers/util"
+	"github.com/stakater/slack-operator/pkg/slack"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -40,6 +46,13 @@ import (
 var cfg *rest.Config
 var k8sClient client.Client
 var testEnv *envtest.Environment
+
+var ctx context.Context
+var r *ChannelReconciler
+var util *controllerUtil.TestUtil
+var ns = "test"
+
+var log logr.Logger
 
 func TestAPIs(t *testing.T) {
 	RegisterFailHandler(Fail)
@@ -51,6 +64,8 @@ func TestAPIs(t *testing.T) {
 
 var _ = BeforeSuite(func(done Done) {
 	logf.SetLogger(zap.LoggerTo(GinkgoWriter, true))
+
+	log = logrusr.NewLogger(logrus.New()).WithName("ControllerTestSuite")
 
 	By("bootstrapping test environment")
 	testEnv = &envtest.Environment{
@@ -68,8 +83,24 @@ var _ = BeforeSuite(func(done Done) {
 	// +kubebuilder:scaffold:scheme
 
 	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
+
 	Expect(err).ToNot(HaveOccurred())
 	Expect(k8sClient).ToNot(BeNil())
+
+	ctx = context.Background()
+
+	r = &ChannelReconciler{
+		Client:       k8sClient,
+		Scheme:       scheme.Scheme,
+		Log:          log.WithName("Reconciler"),
+		SlackService: slack.NewMockService(),
+	}
+	Expect(r).ToNot((BeNil()))
+
+	util = controllerUtil.New(ctx, k8sClient, r)
+	Expect(util).ToNot(BeNil())
+
+	util.CreateNamespace(ns)
 
 	close(done)
 }, 60)
