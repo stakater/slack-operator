@@ -1,5 +1,6 @@
 package slack
 
+//TODO: in pkg or in root?
 import (
 	"github.com/go-logr/logr"
 	"github.com/slack-go/slack"
@@ -8,9 +9,9 @@ import (
 // Service interface
 type Service interface {
 	CreateChannel(string, bool) (*string, error)
-	SetDescription(string, string) error
-	SetTopic(string, string) error
-	RenameChannel(string, string) error
+	SetDescription(string, string) (*slack.Channel, error)
+	SetTopic(string, string) (*slack.Channel, error)
+	RenameChannel(string, string) (*slack.Channel, error)
 	InviteUsers(string, []string) error
 }
 
@@ -44,48 +45,80 @@ func (s *SlackService) CreateChannel(name string, isPrivate bool) (*string, erro
 }
 
 // SetDescription sets description/"purpose" of the slack channel
-func (s *SlackService) SetDescription(channelID string, description string) error {
+func (s *SlackService) SetDescription(channelID string, description string) (*slack.Channel, error) {
 	log := s.log.WithValues("channelID", channelID)
+
+	channel, err := s.api.GetConversationInfo(channelID, false)
+
+	if err != nil {
+		log.Error(err, "Error fetching channel")
+		return nil, err
+	}
+
+	if channel.Purpose.Value == description {
+		return channel, nil
+	}
 
 	log.V(1).Info("Setting Description of the Slack Channel")
 
-	_, err := s.api.SetPurposeOfConversation(channelID, description)
+	channel, err = s.api.SetPurposeOfConversation(channelID, description)
 
 	if err != nil {
 		log.Error(err, "Error setting description of the channel")
-		return err
+		return nil, err
 	}
-	return nil
+	return channel, nil
 }
 
 // SetTopic sets "topic" of the slack channel
-func (s *SlackService) SetTopic(channelID string, topic string) error {
+func (s *SlackService) SetTopic(channelID string, topic string) (*slack.Channel, error) {
 	log := s.log.WithValues("channelID", channelID)
+
+	channel, err := s.api.GetConversationInfo(channelID, false)
+
+	if err != nil {
+		log.Error(err, "Error fetching channel")
+		return nil, err
+	}
+
+	if channel.Topic.Value == topic {
+		return channel, nil
+	}
 
 	log.V(1).Info("Setting Topic of the Slack Channel")
 
-	_, err := s.api.SetTopicOfConversation(channelID, topic)
+	channel, err = s.api.SetTopicOfConversation(channelID, topic)
 
 	if err != nil {
 		log.Error(err, "Error setting topic of the channel")
-		return err
+		return nil, err
 	}
-	return nil
+	return channel, nil
 }
 
 // RenameChannel renames the slack channel
-func (s *SlackService) RenameChannel(channelID string, newName string) error {
+func (s *SlackService) RenameChannel(channelID string, newName string) (*slack.Channel, error) {
 	log := s.log.WithValues("channelID", channelID)
 
-	log.V(1).Info("Renaming Slack Channel", "newName", newName)
+	channel, err := s.api.GetConversationInfo(channelID, false)
 
-	_, err := s.api.RenameConversation(channelID, newName)
+	if err != nil {
+		log.Error(err, "Error fetching channel")
+		return nil, err
+	}
+	if channel.Name == newName {
+		return channel, nil
+	}
+
+	log.Info("Renaming Slack Channel", "newName", newName)
+
+	channel, err = s.api.RenameConversation(channelID, newName)
 
 	if err != nil {
 		log.Error(err, "Error renaming channel")
-		return err
+		return nil, err
 	}
-	return nil
+	return channel, nil
 }
 
 // InviteUsers invites users to the slack channel

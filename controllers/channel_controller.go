@@ -54,17 +54,16 @@ func (r *ChannelReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
 			// Return and don't requeue
 			log.Info("Channel resource not found. Deleting channel")
-			//TODO: Delete slack channel here
 			return ctrl.Result{}, nil
 		}
 		// Error reading channel, requeue
 		return ctrl.Result{}, err
 	}
 
-	name := channel.Spec.Name
-	isPrivate := channel.Spec.Private
-
 	if channel.Status.ID == "" {
+		name := channel.Spec.Name
+		isPrivate := channel.Spec.Private
+
 		log.Info("Creating new channel", "name", name)
 
 		channelID, err := r.SlackService.CreateChannel(name, isPrivate)
@@ -81,14 +80,13 @@ func (r *ChannelReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			log.Error(err, "Failed to update Channel status")
 			return ctrl.Result{}, err
 		}
-		return ctrl.Result{}, nil
+		return r.updateSlackChannel(ctx, channel)
 	}
 
 	return r.updateSlackChannel(ctx, channel)
 }
 
 // TODO: too verbose code for error checking
-// TODO: send request only if data is different
 func (r *ChannelReconciler) updateSlackChannel(ctx context.Context, channel *slackv1alpha1.Channel) (ctrl.Result, error) {
 	channelID := channel.Status.ID
 	log := r.Log.WithValues("channelID", channelID)
@@ -100,7 +98,7 @@ func (r *ChannelReconciler) updateSlackChannel(ctx context.Context, channel *sla
 	topic := channel.Spec.Topic
 	description := channel.Spec.Description
 
-	err := r.SlackService.RenameChannel(channelID, name)
+	_, err := r.SlackService.RenameChannel(channelID, name)
 	if err != nil {
 		log.Error(err, "Error renaming channel")
 		channel.Status.Error = err.Error()
@@ -113,7 +111,7 @@ func (r *ChannelReconciler) updateSlackChannel(ctx context.Context, channel *sla
 		return ctrl.Result{}, nil
 	}
 
-	err = r.SlackService.SetTopic(channelID, topic)
+	_, err = r.SlackService.SetTopic(channelID, topic)
 	if err != nil {
 		log.Error(err, "Error setting channel topic")
 		channel.Status.Error = err.Error()
@@ -126,7 +124,7 @@ func (r *ChannelReconciler) updateSlackChannel(ctx context.Context, channel *sla
 		return ctrl.Result{}, nil
 	}
 
-	err = r.SlackService.SetDescription(channelID, description)
+	_, err = r.SlackService.SetDescription(channelID, description)
 	if err != nil {
 		log.Error(err, "Error setting channel description")
 		channel.Status.Error = err.Error()
