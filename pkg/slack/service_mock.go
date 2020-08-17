@@ -1,8 +1,7 @@
 package slack
 
 import (
-	"github.com/bombsimon/logrusr"
-	"github.com/sirupsen/logrus"
+	"github.com/go-logr/logr"
 	"github.com/slack-go/slack"
 	"github.com/stakater/slack-operator/pkg/slack/mock"
 )
@@ -10,12 +9,9 @@ import (
 var mockSlackService *SlackService
 
 //NewMockService creates a mock service with SlackTestServer
-func NewMockService() *SlackService {
+func NewMockService(log logr.Logger) *SlackService {
 
 	if mockSlackService == nil {
-		logger := logrus.New()
-		log := logrusr.NewLogger(logger).WithName("SlackTestServer")
-
 		testServer := mock.InitSlackTestServer()
 		go testServer.Start()
 
@@ -25,7 +21,7 @@ func NewMockService() *SlackService {
 
 		mockSlackService = &SlackService{
 			api: slack.New("apitoken", opts),
-			log: log,
+			log: log.WithName("SlackService"),
 		}
 	}
 

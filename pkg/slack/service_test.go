@@ -5,10 +5,13 @@ import (
 
 	"github.com/stakater/slack-operator/pkg/slack/mock"
 	"github.com/stretchr/testify/assert"
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 )
 
+var log = zap.Logger(true)
+
 func TestSlackService_CreateChannel_withPublic_shouldCreatePublicChannel(t *testing.T) {
-	s := NewMockService()
+	s := NewMockService(log)
 
 	id, err := s.CreateChannel("my-channel", false)
 
@@ -20,7 +23,7 @@ func TestSlackService_CreateChannel_withPublic_shouldCreatePublicChannel(t *test
 }
 
 func TestSlackService_CreateChannel_withPrivate_shouldCreatePrivateChannel(t *testing.T) {
-	s := NewMockService()
+	s := NewMockService(log)
 
 	id, err := s.CreateChannel("my-channel", true)
 
@@ -32,7 +35,7 @@ func TestSlackService_CreateChannel_withPrivate_shouldCreatePrivateChannel(t *te
 }
 
 func TestSlackService_SetDescription_shouldSetPurpose(t *testing.T) {
-	s := NewMockService()
+	s := NewMockService(log)
 
 	channel, err := s.SetDescription(mock.PublicConversationID, "myDescription")
 	assert.NoError(t, err)
@@ -40,21 +43,21 @@ func TestSlackService_SetDescription_shouldSetPurpose(t *testing.T) {
 }
 
 func TestSlackService_SetTopic_shouldSetTopic(t *testing.T) {
-	s := NewMockService()
+	s := NewMockService(log)
 	channel, err := s.SetTopic(mock.PublicConversationID, "myTopic")
 	assert.NoError(t, err)
 	assert.Equal(t, "myTopic", channel.Topic.Value)
 }
 
 func TestSlackService_RenameChannel_shouldSetNewName(t *testing.T) {
-	s := NewMockService()
+	s := NewMockService(log)
 	channel, err := s.RenameChannel(mock.PublicConversationID, "new-channel")
 	assert.NoError(t, err)
 	assert.Equal(t, "new-channel", channel.Name)
 }
 
 func TestSlackService_InviteUsers_shouldSendUserInvites(t *testing.T) {
-	s := NewMockService()
+	s := NewMockService(log)
 	err := s.InviteUsers(mock.PublicConversationID, []string{"spengler@ghostbusters.example.com"})
 	assert.NoError(t, err)
 }

@@ -21,11 +21,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/bombsimon/logrusr"
 	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -63,9 +61,11 @@ func TestAPIs(t *testing.T) {
 }
 
 var _ = BeforeSuite(func(done Done) {
-	logf.SetLogger(zap.LoggerTo(GinkgoWriter, true))
+	log = zap.LoggerTo(GinkgoWriter, true)
+	logf.SetLogger(log)
 
-	log = logrusr.NewLogger(logrus.New()).WithName("ControllerTestSuite")
+	// TODO: doesn't print output to stdout during tests even with -v without new logger below
+	//log = zap.Logger(true)
 
 	By("bootstrapping test environment")
 	testEnv = &envtest.Environment{
@@ -93,7 +93,7 @@ var _ = BeforeSuite(func(done Done) {
 		Client:       k8sClient,
 		Scheme:       scheme.Scheme,
 		Log:          log.WithName("Reconciler"),
-		SlackService: slack.NewMockService(),
+		SlackService: slack.NewMockService(log.WithName("SlackTestServer")),
 	}
 	Expect(r).ToNot((BeNil()))
 
