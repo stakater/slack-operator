@@ -96,11 +96,15 @@ jobs:
       run: make packagemanifests
 
     # Commit back changes
-    - uses: stefanzweifel/git-auto-commit-action@v4
+    - name: Commit files
+      run: |
+        git config --local user.email "stakater@gmail.com"
+        git config --local user.name "stakater-user"
+        git commit -m "[skip-ci] Update artifacts" -a
+    - name: Push changes
+      uses: ad-m/github-push-action@master
       with:
-        commit_message: "[skip-ci] Update artifacts"
-        commit_user_name: stakater-user
-        commit_user_email: stakater@gmail.com
+        github_token: ${{ secrets.STAKATER_GITHUB_TOKEN }}
 
     - name: Push Latest Tag
       uses: anothrNick/github-tag-action@1.26.0
