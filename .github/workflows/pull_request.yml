@@ -1,0 +1,75 @@
+name: Pull Request
+
+on:
+  pull_request:
+    branches:
+      - master
+
+env:
+  DOCKER_FILE_PATH: Dockerfile
+  GOLANG_VERSION: 1.14
+
+jobs:
+  build:
+    runs-on: ubuntu-latest 
+    name: Build
+    if: "! contains(toJSON(github.event.commits.*.message), '[skip-ci]')"    
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v2
+
+    - name: Set up Go
+      id: go
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ env.GOLANG_VERSION }}
+
+    - name: Lint
+      run: |
+        curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.26.0
+        golangci-lint run --timeout=10m ./...
+
+    # - name: Test
+    #   run: GOFLAGS="-count=1" go test -v ./... -coverprofile cover.out
+
+    - name: Generate Tag
+      id: generate_tag
+      run: |
+        sha=${{ github.event.pull_request.head.sha }}
+        tag="SNAPSHOT-PR-${{ github.event.pull_request.number }}-${sha:0:8}"
+        echo "##[set-output name=GIT_TAG;]$(echo ${tag})"
+    
+    - name: Build and push Docker images
+      uses: docker/build-push-action@v1
+      with:
+        username: ${{ secrets.STAKATER_NEXUS_USERNAME }}
+        password: ${{ secrets.STAKATER_NEXUS_PASSWORD }}
+        registry: ${{ secrets.STAKATER_NEXUS_REGISTRY }}
+        repository: ${{ env.GITHUB_REPOSITORY }}
+        add_git_labels: true
+        dockerfile: ${{ env.DOCKER_FILE_PATH  }}
+        tags: ${{ steps.generate_tag.outputs.GIT_TAG }}
+    
+    
+    - name: Comment on PR
+      uses: thollander/actions-comment-pull-request@master
+      with:
+        message: '@${{ github.actor }} Image is available for testing. `docker pull ${{ secrets.STAKATER_NEXUS_REGISTRY }}/${{ github.repository }}:${{ steps.generate_tag.outputs.GIT_TAG }}`'
+        GITHUB_TOKEN: ${{ secrets.STAKATER_GITHUB_TOKEN }}
+
+    - name: Notify Failure
+      if: failure()
+      uses: thollander/actions-comment-pull-request@master
+      with:
+        message: '@${{ github.actor }} Yikes! You better fix it before anyone else finds out! [Build](https://github.com/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}/checks) has Failed!'
+        GITHUB_TOKEN: ${{ secrets.STAKATER_GITHUB_TOKEN }}
+
+    - name: Notify Slack
+      uses: 8398a7/action-slack@v3
+      if: always() # Pick up events even if the job fails or is canceled.
+      with:
+        status: ${{ job.status }}
+        fields: repo,author,action,eventName,ref,workflow
+      env:
+        GITHUB_TOKEN: ${{ secrets.STAKATER_GITHUB_TOKEN }}
+        SLACK_WEBHOOK_URL: ${{ secrets.STAKATER_DELIVERY_SLACK_WEBHOOK }}
