@@ -17,15 +17,24 @@ limitations under the License.
 package main
 
 import (
+	"context"
 	"flag"
 	"os"
 
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+
+	slackv1alpha1 "github.com/stakater/slack-operator/api/v1alpha1"
+	"github.com/stakater/slack-operator/controllers"
+	"github.com/stakater/slack-operator/pkg/config"
+	slack "github.com/stakater/slack-operator/pkg/slack"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -37,6 +46,7 @@ var (
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
+	utilruntime.Must(slackv1alpha1.AddToScheme(scheme))
 	// +kubebuilder:scaffold:scheme
 }
 
@@ -63,6 +73,30 @@ func main() {
 		os.Exit(1)
 	}
 
+	config, err := config.GetOperatorConfig()
+	if err != nil {
+		setupLog.Error(err, "Unable to read operator config")
+		os.Exit(1)
+	}
+
+	slackAPIToken := readSlackTokenSecret(config, mgr.GetAPIReader())
+
+	if err = (&controllers.ChannelReconciler{
+		Client:       mgr.GetClient(),
+		Log:          ctrl.Log.WithName("controllers").WithName("Channel"),
+		Scheme:       mgr.GetScheme(),
+		SlackService: slack.New(slackAPIToken, ctrl.Log.WithName("service").WithName("Slack")),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "Channel")
+		os.Exit(1)
+	}
+
+	if os.Getenv("ENABLE_WEBHOOKS") != "false" {
+		if err = (&slackv1alpha1.Channel{}).SetupWebhookWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to create webhook", "webhook", "Channel")
+			os.Exit(1)
+		}
+	}
 	// +kubebuilder:scaffold:builder
 
 	setupLog.Info("starting manager")
@@ -70,4 +104,27 @@ func main() {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
 	}
+}
+
+func readSlackTokenSecret(config *config.Config, k8sReader client.Reader) string {
+	secretName := config.Slack.APIToken.SecretName
+	secretKey := config.Slack.APIToken.Key
+
+	secret := &v1.Secret{}
+	setupLog.Info(os.Getenv("OPERATOR_NAMESPACE"))
+	//TODO: get Operator namespace
+	err := k8sReader.Get(context.TODO(), types.NamespacedName{Name: secretName, Namespace: "namnplats"}, secret)
+
+	if err != nil {
+		setupLog.Error(err, "Could not read secret")
+		os.Exit(1)
+	}
+	token := string(secret.Data[secretKey])
+
+	if token == "" {
+		setupLog.Error(nil, "Could not read API token from key", "secretName", secretName, "secretKey", secretKey)
+		os.Exit(1)
+	}
+
+	return token
 }
