@@ -10,7 +10,7 @@ import (
 
 var log = zap.Logger(true)
 
-func TestSlackService_CreateChannel_withPublic_shouldCreatePublicChannel(t *testing.T) {
+func TestSlackService_CreateChannel_shouldCreatePublicChannel_whenPrivateIsFalse(t *testing.T) {
 	s := NewMockService(log)
 
 	id, err := s.CreateChannel("my-channel", false)
@@ -22,7 +22,7 @@ func TestSlackService_CreateChannel_withPublic_shouldCreatePublicChannel(t *test
 	assert.Equal(t, mock.PublicConversationID, *id)
 }
 
-func TestSlackService_CreateChannel_withPrivate_shouldCreatePrivateChannel(t *testing.T) {
+func TestSlackService_CreateChannel_shouldCreatePrivateChannel_whenPrivateIsTrue(t *testing.T) {
 	s := NewMockService(log)
 
 	id, err := s.CreateChannel("my-channel", true)
@@ -32,6 +32,14 @@ func TestSlackService_CreateChannel_withPrivate_shouldCreatePrivateChannel(t *te
 	}
 
 	assert.Equal(t, mock.PrivateConversationID, *id)
+}
+
+func TestSlackService_CreateChannel_shouldThrowError_whenChannelWithSameNameExists(t *testing.T) {
+	s := NewMockService(log)
+
+	_, err := s.CreateChannel(mock.NameTakenConversationName, true)
+
+	assert.EqualError(t, err, "name_taken")
 }
 
 func TestSlackService_SetDescription_shouldSetPurpose(t *testing.T) {
@@ -56,8 +64,26 @@ func TestSlackService_RenameChannel_shouldSetNewName(t *testing.T) {
 	assert.Equal(t, "new-channel", channel.Name)
 }
 
-func TestSlackService_InviteUsers_shouldSendUserInvites(t *testing.T) {
+func TestSlackService_ArchiveChannel_shouldArchiveChannel(t *testing.T) {
+	s := NewMockService(log)
+	err := s.ArchiveChannel(mock.PublicConversationID)
+	assert.NoError(t, err)
+}
+
+func TestSlackService_ArchiveChannel_shouldThrowError_whenChannelNotFound(t *testing.T) {
+	s := NewMockService(log)
+	err := s.ArchiveChannel(mock.NotFoundConversationID)
+	assert.EqualError(t, err, "channel_not_found")
+}
+
+func TestSlackService_InviteUsers_shouldSendUserInvites_whenUserExists(t *testing.T) {
+	s := NewMockService(log)
+	err := s.InviteUsers(mock.PublicConversationID, []string{mock.ExistingUserEmail})
+	assert.NoError(t, err)
+}
+
+func TestSlackService_InviteUsers_shouldThowError_whenUserDoesNotExists(t *testing.T) {
 	s := NewMockService(log)
 	err := s.InviteUsers(mock.PublicConversationID, []string{"spengler@ghostbusters.example.com"})
-	assert.NoError(t, err)
+	assert.EqualError(t, err, "users_not_found")
 }

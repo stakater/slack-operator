@@ -2,8 +2,10 @@ package mock
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"regexp"
 
 	"github.com/slack-go/slack/slacktest"
@@ -27,6 +29,9 @@ func InitSlackTestServer() *slacktest.Server {
 		},
 		func(c slacktest.Customize) {
 			c.Handle("/conversations.rename", renameConversationHandler)
+		},
+		func(c slacktest.Customize) {
+			c.Handle("/conversations.archive", archiveConversationHandler)
 		},
 		func(c slacktest.Customize) {
 			c.Handle("/conversations.invite", inviteConversationHandler)
@@ -58,9 +63,13 @@ func conversationInfoHandler(w http.ResponseWriter, r *http.Request) {
 func createConversationHandler(w http.ResponseWriter, r *http.Request) {
 
 	isPrivate := extractParamValue(r, "is_private")
+	channelName := extractParamValue(r, "name")
 
 	var responseJSON string
-	if isPrivate == "true" {
+
+	if channelName == NameTakenConversationName {
+		responseJSON = conversationNameTakenJSON
+	} else if isPrivate == "true" {
 		responseJSON = privateConversationJSON
 	} else {
 		responseJSON = publicConversationJSON
@@ -87,6 +96,19 @@ func renameConversationHandler(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write([]byte(getConversationNameResponse(newName)))
 }
 
+// handle conversations.archive
+func archiveConversationHandler(w http.ResponseWriter, r *http.Request) {
+	channelID := extractParamValue(r, "channel")
+
+	response := ""
+	if channelID == NotFoundConversationID {
+		response = getConversationArchiveChannelNotFoundRespose()
+	} else {
+		response = getConversationArchiveRespose()
+	}
+	_, _ = w.Write([]byte(response))
+}
+
 // handle conversations.invite
 func inviteConversationHandler(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write([]byte(inviteConversationJSON))
@@ -94,6 +116,15 @@ func inviteConversationHandler(w http.ResponseWriter, r *http.Request) {
 
 // handle users.lookupByEmail
 func usersLookupByEmailHandler(w http.ResponseWriter, r *http.Request) {
+	email := extractParamValue(r, "email")
+
+	userJSON := ""
+	if email == url.QueryEscape(ExistingUserEmail) {
+		userJSON = fmt.Sprintf(templateUserJSON, ExistingUserEmail)
+	} else {
+		userJSON = userNotFoundJSON
+	}
+
 	_, _ = w.Write([]byte(userJSON))
 }
 

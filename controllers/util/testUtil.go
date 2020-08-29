@@ -62,6 +62,38 @@ func (t *TestUtil) GetChannel(name string, namespace string) *slackv1alpha1.Chan
 	return channelObject
 }
 
+// DeleteChannel deletes the channel resource
+func (t *TestUtil) DeleteChannel(name string, namespace string) {
+	channelObject := &slackv1alpha1.Channel{}
+	err := t.k8sClient.Get(t.ctx, types.NamespacedName{Name: name, Namespace: namespace}, channelObject)
+
+	if err != nil {
+		ginko.Fail(err.Error())
+	}
+
+	err = t.k8sClient.Delete(t.ctx, channelObject)
+
+	if err != nil {
+		ginko.Fail(err.Error())
+	}
+
+	req := reconcile.Request{NamespacedName: types.NamespacedName{Name: name, Namespace: namespace}}
+
+	_, err = t.r.Reconcile(req)
+	if err != nil {
+		ginko.Fail(err.Error())
+	}
+}
+
+// TryDeleteChannel - Tries to delete channel if it exists, does not fail on any error
+func (t *TestUtil) TryDeleteChannel(name string, namespace string) {
+	channelObject := &slackv1alpha1.Channel{}
+	t.k8sClient.Get(t.ctx, types.NamespacedName{Name: name, Namespace: namespace}, channelObject)
+	t.k8sClient.Delete(t.ctx, channelObject)
+	req := reconcile.Request{NamespacedName: types.NamespacedName{Name: name, Namespace: namespace}}
+	t.r.Reconcile(req)
+}
+
 // CreateNamespace creates a namespace in the kubernetes server
 func (t *TestUtil) CreateNamespace(name string) {
 	namespaceObject := t.CreateNamespaceObject(name)

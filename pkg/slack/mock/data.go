@@ -9,8 +9,10 @@ import (
 )
 
 var ConversationName = "bat-channel"
+var NameTakenConversationName = "name-taken"
 var PublicConversationID = "C0EAQDV4Z"
 var PrivateConversationID = "Y7HGFWC6Q"
+var NotFoundConversationID = "-"
 var BotID = "U023BECGF"
 var Description = "My channel Description"
 
@@ -54,6 +56,12 @@ var templateChannelJSON = `
 	"priority": 0
 }`
 
+var conversationNameTakenJSON = `
+{
+    "ok": false,
+    "error": "name_taken"
+}`
+
 var templateConversationJSON = fmt.Sprintf(`
 	{
 		"ok": true,
@@ -74,6 +82,23 @@ func getConversationNameResponse(name string) string {
 		nowAsJSONTime(), BotID, name, "false", "", "", 0, "", "", 0, 0)
 }
 
+func getConversationArchiveRespose() string {
+	return `
+	{
+		"ok": true
+	}
+	`
+}
+
+func getConversationArchiveChannelNotFoundRespose() string {
+	return `
+	{
+		"ok": false,
+		"error": "channel_not_found"
+	}
+	`
+}
+
 func getConversationTopicResponse(topic string) string {
 	return fmt.Sprintf(templateConversationJSON, PublicConversationID, ConversationName,
 		nowAsJSONTime(), BotID, ConversationName, "false", topic, BotID,
@@ -92,7 +117,7 @@ func getChannelPurposeResponse(purpose string) string {
 		nowAsJSONTime(), purpose, BotID, nowAsJSONTime(), 0)
 }
 
-const userEmail = "spengler@ghostbusters.example.com"
+const ExistingUserEmail = "iamuser@slack.com"
 
 var templateUserJSON = `
 {
@@ -136,7 +161,12 @@ var templateUserJSON = `
     }
 }`
 
-var userJSON = fmt.Sprintf(templateUserJSON, userEmail)
+var userNotFoundJSON = `
+{
+    "ok": false,
+    "error": "users_not_found"
+}
+`
 
 func nowAsJSONTime() slack.JSONTime {
 	return slack.JSONTime(time.Now().Unix())
