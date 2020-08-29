@@ -29,8 +29,9 @@ var _ = Describe("ChannelController", func() {
 				_ = util.CreateChannel(channelName, false, "", "", []string{}, ns)
 				channel := util.GetChannel(channelName, ns)
 
-				Expect(channel.Status.Conditions).To(BeNil())
 				Expect(channel.Status.ID).To(Equal(slackMock.PublicConversationID))
+				Expect(len(channel.Status.Conditions)).To(Equal(1))
+				Expect(channel.Status.Conditions[0].Reason).To(Equal(status.ConditionReason("Successful")))
 			})
 
 			It("should set error condition if channel with same name already exists", func() {
@@ -49,8 +50,9 @@ var _ = Describe("ChannelController", func() {
 				_ = util.CreateChannel(channelName, true, "", "", []string{}, ns)
 				channel := util.GetChannel(channelName, ns)
 
-				Expect(channel.Status.Conditions).To(BeNil())
 				Expect(channel.Status.ID).To(Equal(slackMock.PrivateConversationID))
+				Expect(len(channel.Status.Conditions)).To(Equal(1))
+				Expect(channel.Status.Conditions[0].Reason).To(Equal(status.ConditionReason("Successful")))
 			})
 		})
 
@@ -61,8 +63,9 @@ var _ = Describe("ChannelController", func() {
 				_ = util.CreateChannel(channelName, true, "", description, []string{}, ns)
 				channel := util.GetChannel(channelName, ns)
 
-				Expect(channel.Status.Conditions).To(BeNil())
 				Expect(channel.Spec.Description).To(Equal(description))
+				Expect(len(channel.Status.Conditions)).To(Equal(1))
+				Expect(channel.Status.Conditions[0].Reason).To(Equal(status.ConditionReason("Successful")))
 			})
 		})
 
@@ -73,18 +76,20 @@ var _ = Describe("ChannelController", func() {
 				_ = util.CreateChannel(channelName, true, topic, "", []string{}, ns)
 				channel := util.GetChannel(channelName, ns)
 
-				Expect(channel.Status.Conditions).To(BeNil())
 				Expect(channel.Spec.Topic).To(Equal(topic))
+				Expect(len(channel.Status.Conditions)).To(Equal(1))
+				Expect(channel.Status.Conditions[0].Reason).To(Equal(status.ConditionReason("Successful")))
 			})
 		})
 
 		Context("With user emails", func() {
-			It("should not set error condition when user exists", func() {
+			It("should set success condition when user exists", func() {
 
 				_ = util.CreateChannel(channelName, true, "", "", []string{mock.ExistingUserEmail}, ns)
 				channel := util.GetChannel(channelName, ns)
 
-				Expect(channel.Status.Conditions).To(BeNil())
+				Expect(len(channel.Status.Conditions)).To(Equal(1))
+				Expect(channel.Status.Conditions[0].Reason).To(Equal(status.ConditionReason("Successful")))
 			})
 
 			It("should set error condition when user does not exists", func() {
@@ -121,8 +126,10 @@ var _ = Describe("ChannelController", func() {
 
 				updatedChannel := util.GetChannel(channelName, ns)
 
-				Expect(channel.Status.Conditions).To(BeNil())
 				Expect(updatedChannel.Spec.Name).To(Equal(newName))
+
+				Expect(len(channel.Status.Conditions)).To(Equal(1))
+				Expect(channel.Status.Conditions[0].Reason).To(Equal(status.ConditionReason("Successful")))
 			})
 		})
 	})
@@ -133,8 +140,9 @@ var _ = Describe("ChannelController", func() {
 				_ = util.CreateChannel(channelName, false, "", "", []string{}, ns)
 				channel := util.GetChannel(channelName, ns)
 
-				Expect(channel.Status.Conditions).To(BeNil())
 				Expect(channel.Status.ID).ToNot(BeEmpty())
+				Expect(len(channel.Status.Conditions)).To(Equal(1))
+				Expect(channel.Status.Conditions[0].Reason).To(Equal(status.ConditionReason("Successful")))
 
 				util.DeleteChannel(channelName, ns)
 

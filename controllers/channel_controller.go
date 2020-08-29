@@ -59,10 +59,10 @@ func (r *ChannelReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			// Request object not found, could have been deleted after reconcile request.
 			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
 			// Return and don't requeue
-			return ctrl.Result{}, nil
+			return reconcilerUtil.DoNotRequeue()
 		}
 		// Error reading channel, requeue
-		return ctrl.Result{}, err
+		return reconcilerUtil.RequeueWithError(err)
 	}
 
 	isChannelMarkedToBeDeleted := channel.GetDeletionTimestamp() != nil
@@ -104,7 +104,7 @@ func (r *ChannelReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		err = r.Status().Update(ctx, channel)
 		if err != nil {
 			log.Error(err, "Failed to update Channel status")
-			return ctrl.Result{}, err
+			return reconcilerUtil.ManageError(r.Client, channel, err, true)
 		}
 		return r.updateSlackChannel(ctx, channel)
 	}
@@ -147,7 +147,7 @@ func (r *ChannelReconciler) updateSlackChannel(ctx context.Context, channel *sla
 		return reconcilerUtil.ManageError(r.Client, channel, err, false)
 	}
 
-	return ctrl.Result{}, nil
+	return reconcilerUtil.ManageSuccess(r.Client, channel)
 }
 
 func (r *ChannelReconciler) finalizeChannel(req ctrl.Request, channel *slackv1alpha1.Channel) (ctrl.Result, error) {
