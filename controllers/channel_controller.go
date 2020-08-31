@@ -25,8 +25,14 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	finalizerUtil "github.com/stakater/operator-utils/util/finalizer"
+	reconcilerUtil "github.com/stakater/operator-utils/util/reconciler"
 	slackv1alpha1 "github.com/stakater/slack-operator/api/v1alpha1"
 	slack "github.com/stakater/slack-operator/pkg/slack"
+)
+
+var (
+	channelFinalizer string = "slack.stakater.com/channel"
 )
 
 // ChannelReconciler reconciles a Channel object
@@ -53,11 +59,32 @@ func (r *ChannelReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			// Request object not found, could have been deleted after reconcile request.
 			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
 			// Return and don't requeue
-			log.Info("Channel resource not found. Deleting channel")
 			return ctrl.Result{}, nil
 		}
 		// Error reading channel, requeue
 		return ctrl.Result{}, err
+	}
+
+	isChannelMarkedToBeDeleted := channel.GetDeletionTimestamp() != nil
+	if isChannelMarkedToBeDeleted {
+		log.Info("Deletion timestamp found for channel " + req.Name)
+		if finalizerUtil.HasFinalizer(channel, channelFinalizer) {
+			return r.finalizeChannel(req, channel)
+		}
+		// Finalizer doesn't exist so clean up is already done
+		return reconcilerUtil.DoNotRequeue()
+	}
+
+	// Add finalizer if it doesn't exist
+	if !finalizerUtil.HasFinalizer(channel, channelFinalizer) {
+		log.Info("Adding finalizer for channel " + req.Name)
+
+		finalizerUtil.AddFinalizer(channel, channelFinalizer)
+
+		err := r.Client.Update(ctx, channel)
+		if err != nil {
+			return reconcilerUtil.ManageError(r.Client, channel, err, true)
+		}
 	}
 
 	if channel.Status.ID == "" {
@@ -69,10 +96,9 @@ func (r *ChannelReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		channelID, err := r.SlackService.CreateChannel(name, isPrivate)
 
 		if err != nil {
-			// Set error state and don't requeue
-			channel.Status.Error = err.Error()
-			return ctrl.Result{}, nil
+			return reconcilerUtil.ManageError(r.Client, channel, err, false)
 		}
+
 		channel.Status.ID = *channelID
 
 		err = r.Status().Update(ctx, channel)
@@ -86,7 +112,6 @@ func (r *ChannelReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	return r.updateSlackChannel(ctx, channel)
 }
 
-// TODO: too verbose code for error checking
 func (r *ChannelReconciler) updateSlackChannel(ctx context.Context, channel *slackv1alpha1.Channel) (ctrl.Result, error) {
 	channelID := channel.Status.ID
 	log := r.Log.WithValues("channelID", channelID)
@@ -101,56 +126,53 @@ func (r *ChannelReconciler) updateSlackChannel(ctx context.Context, channel *sla
 	_, err := r.SlackService.RenameChannel(channelID, name)
 	if err != nil {
 		log.Error(err, "Error renaming channel")
-		channel.Status.Error = err.Error()
-
-		err = r.Status().Update(ctx, channel)
-		if err != nil {
-			log.Error(err, "Failed to update Channel status")
-			return ctrl.Result{}, err
-		}
-		return ctrl.Result{}, nil
+		return reconcilerUtil.ManageError(r.Client, channel, err, false)
 	}
 
 	_, err = r.SlackService.SetTopic(channelID, topic)
 	if err != nil {
 		log.Error(err, "Error setting channel topic")
-		channel.Status.Error = err.Error()
-
-		err = r.Status().Update(ctx, channel)
-		if err != nil {
-			log.Error(err, "Failed to update Channel status")
-			return ctrl.Result{}, err
-		}
-		return ctrl.Result{}, nil
+		return reconcilerUtil.ManageError(r.Client, channel, err, false)
 	}
 
 	_, err = r.SlackService.SetDescription(channelID, description)
 	if err != nil {
 		log.Error(err, "Error setting channel description")
-		channel.Status.Error = err.Error()
-
-		err = r.Status().Update(ctx, channel)
-		if err != nil {
-			log.Error(err, "Failed to update Channel status")
-			return ctrl.Result{}, err
-		}
-		return ctrl.Result{}, nil
+		return reconcilerUtil.ManageError(r.Client, channel, err, false)
 	}
 
 	err = r.SlackService.InviteUsers(channelID, users)
 	if err != nil {
 		log.Error(err, "Error inviting users to channel")
-		channel.Status.Error = err.Error()
-
-		err = r.Status().Update(ctx, channel)
-		if err != nil {
-			log.Error(err, "Failed to update Channel status")
-			return ctrl.Result{}, err
-		}
-		return ctrl.Result{}, nil
+		return reconcilerUtil.ManageError(r.Client, channel, err, false)
 	}
 
 	return ctrl.Result{}, nil
+}
+
+func (r *ChannelReconciler) finalizeChannel(req ctrl.Request, channel *slackv1alpha1.Channel) (ctrl.Result, error) {
+	channelID := channel.Status.ID
+	log := r.Log.WithValues("channelID", channelID)
+
+	if channel == nil {
+		return reconcilerUtil.DoNotRequeue()
+	}
+
+	err := r.SlackService.ArchiveChannel(channelID)
+
+	if err != nil && err.Error() != "channel_not_found" {
+		return reconcilerUtil.ManageError(r.Client, channel, err, false)
+	}
+
+	finalizerUtil.DeleteFinalizer(channel, channelFinalizer)
+	log.V(1).Info("Finalizer removed for channel")
+
+	err = r.Client.Update(context.Background(), channel)
+	if err != nil {
+		return reconcilerUtil.ManageError(r.Client, channel, err, false)
+	}
+
+	return reconcilerUtil.DoNotRequeue()
 }
 
 // SetupWithManager - Controller-Manager binding configuration

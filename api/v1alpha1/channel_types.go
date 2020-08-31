@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"github.com/operator-framework/operator-sdk/pkg/status"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -43,8 +44,8 @@ type ChannelStatus struct {
 	// ID of the slack channel
 	ID string `json:"id"`
 
-	// Error message if any error has occurred
-	Error string `json:"error,omitempty"`
+	// Status conditions
+	Conditions status.Conditions `json:"conditions,omitempty"`
 }
 
 // +kubebuilder:object:root=true
@@ -70,4 +71,14 @@ type ChannelList struct {
 
 func init() {
 	SchemeBuilder.Register(&Channel{}, &ChannelList{})
+}
+
+// GetReconcileStatus - returns conditions, required for making Channel ConditionsStatusAware
+func (channel *Channel) GetReconcileStatus() status.Conditions {
+	return channel.Status.Conditions
+}
+
+// SetReconcileStatus - sets status, required for making Channel ConditionsStatusAware
+func (channel *Channel) SetReconcileStatus(reconcileStatus status.Conditions) {
+	channel.Status.Conditions = reconcileStatus
 }

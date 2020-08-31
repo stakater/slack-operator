@@ -12,6 +12,7 @@ type Service interface {
 	SetDescription(string, string) (*slack.Channel, error)
 	SetTopic(string, string) (*slack.Channel, error)
 	RenameChannel(string, string) (*slack.Channel, error)
+	ArchiveChannel(string) error
 	InviteUsers(string, []string) error
 }
 
@@ -110,7 +111,7 @@ func (s *SlackService) RenameChannel(channelID string, newName string) (*slack.C
 		return channel, nil
 	}
 
-	log.Info("Renaming Slack Channel", "newName", newName)
+	log.V(1).Info("Renaming Slack Channel", "newName", newName)
 
 	channel, err = s.api.RenameConversation(channelID, newName)
 
@@ -119,6 +120,21 @@ func (s *SlackService) RenameChannel(channelID string, newName string) (*slack.C
 		return nil, err
 	}
 	return channel, nil
+}
+
+// ArchiveChannel archives the slack channel
+func (s *SlackService) ArchiveChannel(channelID string) error {
+	log := s.log.WithValues("channelID", channelID)
+
+	log.V(1).Info("Archiving channel")
+	err := s.api.ArchiveConversation(channelID)
+
+	if err != nil {
+		log.Error(err, "Error archiving channel")
+		return err
+	}
+
+	return nil
 }
 
 // InviteUsers invites users to the slack channel
