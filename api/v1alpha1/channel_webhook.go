@@ -65,7 +65,7 @@ func (r *Channel) ValidateDelete() error {
 	return nil
 }
 
-// TODO: test
+// TODO: test & write tst
 func validateImmutableFields(newChannel *Channel, oldChannel *Channel) error {
 	if oldChannel.Spec.Private != newChannel.Spec.Private {
 		return fmt.Errorf("Field 'isPrivate' is immutable and cannot be changed after Slack Channel has been created")

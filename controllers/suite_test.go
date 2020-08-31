@@ -64,9 +64,6 @@ var _ = BeforeSuite(func(done Done) {
 	log = zap.LoggerTo(GinkgoWriter, true)
 	logf.SetLogger(log)
 
-	// TODO: doesn't print output to stdout during tests even with -v without new logger below
-	//log = zap.Logger(true)
-
 	By("bootstrapping test environment")
 	testEnv = &envtest.Environment{
 		CRDDirectoryPaths: []string{filepath.Join("..", "config", "crd", "bases")},

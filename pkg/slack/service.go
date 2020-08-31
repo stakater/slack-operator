@@ -1,6 +1,5 @@
 package slack
 
-//TODO: in pkg or in root?
 import (
 	"github.com/go-logr/logr"
 	"github.com/slack-go/slack"
