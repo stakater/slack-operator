@@ -1,7 +1,6 @@
 package mock
 
 import (
-	"encoding/json"
 	"fmt"
 	"time"
 
@@ -111,12 +110,6 @@ func getConversationPurposeResponse(purpose string) string {
 		nowAsJSONTime(), purpose, BotID, nowAsJSONTime(), 0)
 }
 
-func getChannelPurposeResponse(purpose string) string {
-	return fmt.Sprintf(templateChannelJSON, PublicConversationID, ConversationName,
-		nowAsJSONTime(), BotID, ConversationName, "false", "random topic", BotID,
-		nowAsJSONTime(), purpose, BotID, nowAsJSONTime(), 0)
-}
-
 const ExistingUserEmail = "iamuser@slack.com"
 
 var templateUserJSON = `
@@ -170,14 +163,4 @@ var userNotFoundJSON = `
 
 func nowAsJSONTime() slack.JSONTime {
 	return slack.JSONTime(time.Now().Unix())
-}
-
-func asChannelObject(j string) *slack.Channel {
-	channel := &slack.Channel{}
-	err := json.Unmarshal([]byte(j), &channel)
-
-	if err != nil {
-		panic(err)
-	}
-	return channel
 }

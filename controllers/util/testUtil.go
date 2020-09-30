@@ -88,10 +88,10 @@ func (t *TestUtil) DeleteChannel(name string, namespace string) {
 // TryDeleteChannel - Tries to delete channel if it exists, does not fail on any error
 func (t *TestUtil) TryDeleteChannel(name string, namespace string) {
 	channelObject := &slackv1alpha1.Channel{}
-	t.k8sClient.Get(t.ctx, types.NamespacedName{Name: name, Namespace: namespace}, channelObject)
-	t.k8sClient.Delete(t.ctx, channelObject)
+	_ = t.k8sClient.Get(t.ctx, types.NamespacedName{Name: name, Namespace: namespace}, channelObject)
+	_ = t.k8sClient.Delete(t.ctx, channelObject)
 	req := reconcile.Request{NamespacedName: types.NamespacedName{Name: name, Namespace: namespace}}
-	t.r.Reconcile(req)
+	_, _ = t.r.Reconcile(req)
 }
 
 // CreateNamespace creates a namespace in the kubernetes server
