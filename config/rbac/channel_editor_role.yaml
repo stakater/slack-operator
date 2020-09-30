@@ -1,0 +1,24 @@
+# permissions for end users to edit channels.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: channel-editor-role
+rules:
+- apiGroups:
+  - slack.stakater.com
+  resources:
+  - channels
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - slack.stakater.com
+  resources:
+  - channels/status
+  verbs:
+  - get
