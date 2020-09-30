@@ -1,3 +1,5 @@
+SHELL := /bin/bash
+
 # Current Operator version
 VERSION ?= 0.0.1
 # Default bundle image tag
@@ -16,6 +18,11 @@ IMG ?= controller:latest
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true"
 
+# GOLANGCI_LINT env
+GOLANGCI_LINT = _output/tools/golangci-lint
+GOLANGCI_LINT_CACHE = $(PWD)/_output/golangci-lint-cache
+GOLANGCI_LINT_VERSION = v1.24
+
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
 GOBIN=$(shell go env GOPATH)/bin
@@ -26,15 +33,18 @@ endif
 all: manager
 
 # Run tests
+ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
 test: generate fmt vet manifests
-	go test ./... -coverprofile cover.out
+	mkdir -p ${ENVTEST_ASSETS_DIR}
+	test -f ${ENVTEST_ASSETS_DIR}/setup-envtest.sh || curl -sSLo ${ENVTEST_ASSETS_DIR}/setup-envtest.sh https://raw.githubusercontent.com/kubernetes-sigs/controller-runtime/master/hack/setup-envtest.sh
+	source ${ENVTEST_ASSETS_DIR}/setup-envtest.sh; fetch_envtest_tools $(ENVTEST_ASSETS_DIR); setup_envtest_env $(ENVTEST_ASSETS_DIR); go test ./... -coverprofile cover.out
 
 # Build manager binary
 manager: generate fmt vet
 	go build -o bin/manager main.go
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
-run: generate fmt vet manifests
+run: generate fmt vet manifests install
 	go run ./main.go
 
 # Install CRDs into a cluster
@@ -106,6 +116,14 @@ else
 KUSTOMIZE=$(shell which kustomize)
 endif
 
+# Generate bundle manifests and metadata, then validate generated files.
+.PHONY: bundle
+bundle: manifests
+	operator-sdk generate kustomize manifests -q
+	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
+	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
+	operator-sdk bundle validate ./bundle
+
 # Options for "packagemanifests".
 ifneq ($(origin FROM_VERSION), undefined)
 PKG_FROM_VERSION := --from-version=$(FROM_VERSION)
@@ -123,11 +141,27 @@ packagemanifests: manifests
 	operator-sdk generate kustomize manifests -q
 	$(KUSTOMIZE) build config/manifests | operator-sdk generate packagemanifests -q --version $(VERSION) $(PKG_MAN_OPTS)
 
+# Build the bundle image.
+.PHONY: bundle-build
+bundle-build:
+	docker build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
+
 # Generate bundle manifests and metadata, then validate generated files.
 bundle: manifests
 	operator-sdk generate kustomize manifests -q
 	kustomize build config/manifests | operator-sdk generate bundle -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
 	operator-sdk bundle validate ./bundle
+
+verify-fmt:
+	./hack/verify-gofmt.sh
+
+$(GOLANGCI_LINT):
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(dir $@) v1.24.0
+
+verify-golangci-lint: $(GOLANGCI_LINT)
+	GOLANGCI_LINT_CACHE=$(GOLANGCI_LINT_CACHE) $(GOLANGCI_LINT) run --timeout=300s ./...
+
+verify: verify-fmt verify-golangci-lint
 
 # Build the bundle image.
 bundle-build:
