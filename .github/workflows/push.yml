@@ -8,8 +8,10 @@ on:
 env:
   DOCKER_FILE_PATH: Dockerfile
   GOLANG_VERSION: 1.14
-  OPERATOR_SDK_VERSION: "0.19.0"
+  OPERATOR_SDK_VERSION: "1.0.0"
   KUSTOMIZE_VERSION: "3.5.4"
+  KUBERNETES_VERSION: "1.18.0"
+  KIND_VERSION: "0.7.0"
 
 jobs:
   build:
@@ -35,8 +37,34 @@ jobs:
         curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.26.0
         golangci-lint run --timeout=10m ./...
 
-    # - name: Test
-    #   run: GOFLAGS="-count=1" go test -v ./... -coverprofile cover.out
+    - name: Install kubectl
+      run: |
+        curl -LO "https://storage.googleapis.com/kubernetes-release/release/v${KUBERNETES_VERSION}/bin/linux/amd64/kubectl"
+        sudo install ./kubectl /usr/local/bin/ && rm kubectl
+        kubectl version --short --client
+        kubectl version --short --client | grep -q ${KUBERNETES_VERSION}
+
+    - name: Install Kind
+      run: |
+        curl -L -o kind https://github.com/kubernetes-sigs/kind/releases/download/v${KIND_VERSION}/kind-linux-amd64
+        sudo install ./kind /usr/local/bin && rm kind
+        kind version
+        kind version | grep -q ${KIND_VERSION}
+
+    - name: Create Kind Cluster
+      run: |
+        kind create cluster
+
+    - name: Set up Cluster
+      run: |
+        kubectl cluster-info
+        kubectl create namespace test
+        echo "${{ secrets.SECRET_KUBERNETES_RESOURCES }}"> kube.yaml
+        kubectl apply -f kube.yaml
+        rm -f kube.yaml
+
+    - name: Test
+      run: make test OPERATOR_NAMESPACE=test USE_EXISTING_CLUSTER=true
 
     - name: Generate Tag
       id: generate_tag
