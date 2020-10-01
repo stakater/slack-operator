@@ -55,7 +55,7 @@ func (r *Channel) ValidateUpdate(old runtime.Object) error {
 	if !ok {
 		return fmt.Errorf("Error casting old runtime object to %T from %T", oldChannel, old)
 	}
-	return validateImmutableFields(r, oldChannel)
+	return ValidateImmutableFields(r, oldChannel)
 }
 
 // ValidateDelete implements webhook.Validator so a webhook will be registered for the type
@@ -66,7 +66,7 @@ func (r *Channel) ValidateDelete() error {
 }
 
 // TODO: test & write tst
-func validateImmutableFields(newChannel *Channel, oldChannel *Channel) error {
+func ValidateImmutableFields(newChannel *Channel, oldChannel *Channel) error {
 	if oldChannel.Spec.Private != newChannel.Spec.Private {
 		return fmt.Errorf("Field 'isPrivate' is immutable and cannot be changed after Slack Channel has been created")
 	}
