@@ -47,7 +47,7 @@ $ oc apply -f bundle/manifests
 
 [Operator-sdk v1.0.0](https://github.com/operator-framework/operator-sdk/releases/tag/v1.0.0) is required for local development.
 
-1. Create `jira-service-desk-config` secret
+1. Create `slack-secret` secret
 2. Run `make run ENABLE_WEBHOOKS=false WATCH_NAMESPACE=default OPERATOR_NAMESPACE=default` where `WATCH_NAMESPACE` denotes the namespaces that the operator is supposed to watch and `OPERATOR_NAMESPACE` is the namespace in which it's supposed to be deployed.
 
 3. Before committing your changes run the following to ensure that everything is verified and up-to-date:
@@ -59,5 +59,5 @@ $ oc apply -f bundle/manifests
 1. Create `slack-secret` secret in test namespace
 
 ### To run tests:
-Use the following command to run tests:
+1. Use the following command to run tests:
 `make test OPERATOR_NAMESPACE=test USE_EXISTING_CLUSTER=true`
