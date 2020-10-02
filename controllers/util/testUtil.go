@@ -104,6 +104,16 @@ func (t *TestUtil) CreateNamespace(name string) {
 	}
 }
 
+// DeleteNamespace deletes a namespace in the kubernetes server
+func (t *TestUtil) DeleteNamespace(name string) {
+	namespaceObject := t.CreateNamespaceObject(name)
+	err := t.k8sClient.Delete(t.ctx, namespaceObject)
+
+	if err != nil {
+		ginkgo.Fail(err.Error())
+	}
+}
+
 // CreateSlackChannelObject creates a slack channel custom resource object
 func (t *TestUtil) CreateSlackChannelObject(name string, isPrivate bool, topic string, description string, users []string, namespace string) *slackv1alpha1.Channel {
 	return &slackv1alpha1.Channel{
