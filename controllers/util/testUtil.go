@@ -104,7 +104,7 @@ func (t *TestUtil) CreateNamespace(name string) {
 	}
 }
 
-// CreateNamespace creates a namespace in the kubernetes server
+// DeleteNamespace creates a namespace in the kubernetes server
 func (t *TestUtil) DeleteNamespace(name string) {
 	namespaceObject := t.CreateNamespaceObject(name)
 	err := t.k8sClient.Delete(t.ctx, namespaceObject)
