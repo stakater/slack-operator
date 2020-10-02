@@ -1,0 +1,51 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  annotations:
+    alm-examples: '[]'
+    capabilities: Basic Install
+    operators.operatorframework.io/builder: operator-sdk-v1.0.0
+    operators.operatorframework.io/project_layout: go.kubebuilder.io/v2
+  name: slack-operator.vX.Y.Z
+  namespace: placeholder
+spec:
+  apiservicedefinitions: {}
+  customresourcedefinitions:
+    owned:
+    - description: Channel is the Schema for the channels API
+      displayName: Channel
+      kind: Channel
+      name: channels.slack.stakater.com
+      version: v1alpha1
+  description: Kubernetes operator for Slack
+  displayName: slack-operator
+  icon:
+  - base64data: ""
+    mediatype: ""
+  install:
+    spec:
+      deployments: null
+    strategy: ""
+  installModes:
+  - supported: true
+    type: OwnNamespace
+  - supported: true
+    type: SingleNamespace
+  - supported: false
+    type: MultiNamespace
+  - supported: true
+    type: AllNamespaces
+  keywords:
+  - operator
+  - slack
+  - kubernetes
+  - channel
+  - stakater
+  links:
+  - name: Slack Operator
+    url: https://slack-operator.domain
+  maturity: alpha
+  provider:
+    name: stakater
+    url: https://stakater.com
+  version: 0.0.0
