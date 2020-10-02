@@ -3,6 +3,8 @@ package slack
 import (
 	"github.com/go-logr/logr"
 	"github.com/slack-go/slack"
+
+	slackv1alpha1 "github.com/stakater/slack-operator/api/v1alpha1"
 )
 
 // Service interface
@@ -13,6 +15,8 @@ type Service interface {
 	RenameChannel(string, string) (*slack.Channel, error)
 	ArchiveChannel(string) error
 	InviteUsers(string, []string) error
+	GetChannel(string) (*slack.Channel, error)
+	GetChannelCRFromChannel(*slack.Channel) *slackv1alpha1.Channel
 }
 
 // SlackService structure
@@ -27,6 +31,19 @@ func New(APIToken string, logger logr.Logger) *SlackService {
 		api: slack.New(APIToken),
 		log: logger,
 	}
+}
+
+// GetChannel gets a channel on slack
+func (s *SlackService) GetChannel(channelID string) (*slack.Channel, error) {
+	log := s.log.WithValues("channelID", channelID)
+
+	channel, err := s.api.GetConversationInfo(channelID, false)
+	if err != nil {
+		log.Error(err, "Error fetching channel")
+		return nil, err
+	}
+
+	return channel, err
 }
 
 // CreateChannel creates a public or private channel on slack with the given name
@@ -157,4 +174,16 @@ func (s *SlackService) InviteUsers(channelID string, userEmails []string) error 
 		}
 	}
 	return nil
+}
+
+func (s *SlackService) GetChannelCRFromChannel(existingChannel *slack.Channel) *slackv1alpha1.Channel {
+	var channel slackv1alpha1.Channel
+
+	channel.Spec.Name = existingChannel.Name
+	channel.Spec.Description = existingChannel.Purpose.Value
+	channel.Spec.Topic = existingChannel.Topic.Value
+	channel.Spec.Private = existingChannel.IsPrivate
+	channel.Spec.Users = existingChannel.Members
+
+	return &channel
 }
