@@ -97,14 +97,10 @@ var _ = BeforeSuite(func(done Done) {
 	util = controllerUtil.New(ctx, k8sClient, r)
 	Expect(util).ToNot(BeNil())
 
-	util.CreateNamespace(ns)
-
 	close(done)
 }, 60)
 
 var _ = AfterSuite(func() {
-	util.DeleteNamespace(ns)
-
 	By("tearing down the test environment")
 	err := testEnv.Stop()
 	Expect(err).ToNot(HaveOccurred())

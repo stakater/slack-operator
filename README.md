@@ -56,8 +56,9 @@ $ oc apply -f bundle/manifests
 ## Running Tests
 
 ### Pre-requisites:
-1. Create `slack-secret` secret in test namespace
+1. Create a namespace with the name `test`
+2. Create `slack-secret` secret in test namespace
 
 ### To run tests:
-1. Use the following command to run tests:
+Use the following command to run tests:
 `make test OPERATOR_NAMESPACE=test USE_EXISTING_CLUSTER=true`
