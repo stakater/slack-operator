@@ -32,17 +32,23 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
+	"github.com/prometheus/common/log"
 	secretsUtil "github.com/stakater/operator-utils/util/secrets"
 	slackv1alpha1 "github.com/stakater/slack-operator/api/v1alpha1"
 	"github.com/stakater/slack-operator/controllers"
-	"github.com/stakater/slack-operator/pkg/config"
 	slack "github.com/stakater/slack-operator/pkg/slack"
 	// +kubebuilder:scaffold:imports
 )
 
+const (
+	SlackDefaultSecretName string = "slack-secret"
+	SlackAPITokenSecretKey string = "APIToken"
+)
+
 var (
-	scheme   = runtime.NewScheme()
-	setupLog = ctrl.Log.WithName("setup")
+	scheme                 = runtime.NewScheme()
+	setupLog               = ctrl.Log.WithName("setup")
+	SlackSecretName string = getConfigSecretName()
 )
 
 func init() {
@@ -92,13 +98,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	config, err := config.GetOperatorConfig()
-	if err != nil {
-		setupLog.Error(err, "Unable to read operator config")
-		os.Exit(1)
-	}
-
-	slackAPIToken := readSlackTokenSecret(config, mgr.GetAPIReader())
+	slackAPIToken := readSlackTokenSecret(mgr.GetAPIReader())
 
 	if err = (&controllers.ChannelReconciler{
 		Client:       mgr.GetClient(),
@@ -138,9 +138,18 @@ func getWatchNamespace() (string, error) {
 	return ns, nil
 }
 
-func readSlackTokenSecret(config *config.Config, k8sReader client.Reader) string {
-	secretName := config.Slack.APIToken.SecretName
-	secretKey := config.Slack.APIToken.Key
+func getConfigSecretName() string {
+	configSecretName, _ := os.LookupEnv("CONFIG_SECRET_NAME")
+	if len(configSecretName) == 0 {
+		configSecretName = SlackDefaultSecretName
+		log.Info("CONFIG_SECRET_NAME is unset, using default value: " + SlackDefaultSecretName)
+	}
+	return configSecretName
+}
+
+func readSlackTokenSecret(k8sReader client.Reader) string {
+	secretName := getConfigSecretName()
+	secretKey := SlackAPITokenSecretKey
 
 	operatorNamespace, _ := os.LookupEnv("OPERATOR_NAMESPACE")
 	if len(operatorNamespace) == 0 {

@@ -1,4 +1,0 @@
-slack:
-  APIToken:
-    secretName: "slack-secret"
-    key: APIToken
