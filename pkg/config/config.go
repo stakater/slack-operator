@@ -94,7 +94,6 @@ func ReadSlackTokenSecret(k8sReader client.Reader) string {
 	}
 
 	token, err := secretsUtil.LoadSecretData(k8sReader, SlackSecretName, operatorNamespace, SlackAPITokenSecretKey)
-
 	if err != nil {
 		setupLog.Error(err, "Could not read API token from key", "secretName", SlackSecretName, "secretKey", SlackAPITokenSecretKey)
 		os.Exit(1)

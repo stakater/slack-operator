@@ -45,6 +45,7 @@ type ChannelReconciler struct {
 
 // +kubebuilder:rbac:groups=slack.stakater.com,resources=channels,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=slack.stakater.com,resources=channels/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups="",resources=secrets,verbs=get;list
 
 // Reconcile loop for the Channel resource
 func (r *ChannelReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {

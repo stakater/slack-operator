@@ -12,6 +12,7 @@ spec:
     listKind: ChannelList
     plural: channels
     singular: channel
+  preserveUnknownFields: false
   scope: Namespaced
   subresources:
     status: {}
