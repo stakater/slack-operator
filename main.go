@@ -148,9 +148,6 @@ func getConfigSecretName() string {
 }
 
 func readSlackTokenSecret(k8sReader client.Reader) string {
-	secretName := getConfigSecretName()
-	secretKey := SlackAPITokenSecretKey
-
 	operatorNamespace, _ := os.LookupEnv("OPERATOR_NAMESPACE")
 	if len(operatorNamespace) == 0 {
 		operatorNamespaceTemp, err := k8sutil.GetOperatorNamespace()
@@ -161,10 +158,10 @@ func readSlackTokenSecret(k8sReader client.Reader) string {
 		operatorNamespace = operatorNamespaceTemp
 	}
 
-	token, err := secretsUtil.LoadSecretData(k8sReader, secretName, operatorNamespace, secretKey)
+	token, err := secretsUtil.LoadSecretData(k8sReader, SlackSecretName, operatorNamespace, SlackAPITokenSecretKey)
 
 	if err != nil {
-		setupLog.Error(err, "Could not read API token from key", "secretName", secretName, "secretKey", secretKey)
+		setupLog.Error(err, "Could not read API token from key", "secretName", SlackSecretName, "secretKey", SlackAPITokenSecretKey)
 		os.Exit(1)
 	}
 
