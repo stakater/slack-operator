@@ -28,27 +28,18 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
-	"github.com/prometheus/common/log"
-	secretsUtil "github.com/stakater/operator-utils/util/secrets"
 	slackv1alpha1 "github.com/stakater/slack-operator/api/v1alpha1"
 	"github.com/stakater/slack-operator/controllers"
+	config "github.com/stakater/slack-operator/pkg/config"
 	slack "github.com/stakater/slack-operator/pkg/slack"
 	// +kubebuilder:scaffold:imports
 )
 
-const (
-	SlackDefaultSecretName string = "slack-secret"
-	SlackAPITokenSecretKey string = "APIToken"
-)
-
 var (
-	scheme                 = runtime.NewScheme()
-	setupLog               = ctrl.Log.WithName("setup")
-	SlackSecretName string = getConfigSecretName()
+	scheme   = runtime.NewScheme()
+	setupLog = ctrl.Log.WithName("setup")
 )
 
 func init() {
@@ -98,7 +89,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	slackAPIToken := readSlackTokenSecret(mgr.GetAPIReader())
+	slackAPIToken := config.ReadSlackTokenSecret(mgr.GetAPIReader())
 
 	if err = (&controllers.ChannelReconciler{
 		Client:       mgr.GetClient(),
@@ -136,34 +127,4 @@ func getWatchNamespace() (string, error) {
 		return "", fmt.Errorf("%s must be set", watchNamespaceEnvVar)
 	}
 	return ns, nil
-}
-
-func getConfigSecretName() string {
-	configSecretName, _ := os.LookupEnv("CONFIG_SECRET_NAME")
-	if len(configSecretName) == 0 {
-		configSecretName = SlackDefaultSecretName
-		log.Info("CONFIG_SECRET_NAME is unset, using default value: " + SlackDefaultSecretName)
-	}
-	return configSecretName
-}
-
-func readSlackTokenSecret(k8sReader client.Reader) string {
-	operatorNamespace, _ := os.LookupEnv("OPERATOR_NAMESPACE")
-	if len(operatorNamespace) == 0 {
-		operatorNamespaceTemp, err := k8sutil.GetOperatorNamespace()
-		if err != nil {
-			setupLog.Error(err, "Unable to get operator namespace")
-			os.Exit(1)
-		}
-		operatorNamespace = operatorNamespaceTemp
-	}
-
-	token, err := secretsUtil.LoadSecretData(k8sReader, SlackSecretName, operatorNamespace, SlackAPITokenSecretKey)
-
-	if err != nil {
-		setupLog.Error(err, "Could not read API token from key", "secretName", SlackSecretName, "secretKey", SlackAPITokenSecretKey)
-		os.Exit(1)
-	}
-
-	return token
 }
