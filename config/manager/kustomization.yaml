@@ -5,4 +5,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: stakater/slack-operator
-  newTag: SNAPSHOT-PR-11-aa6c5b89
+  newTag: SNAPSHOT-PR-11-c8ca557c
