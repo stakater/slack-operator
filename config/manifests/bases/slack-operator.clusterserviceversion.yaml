@@ -41,6 +41,7 @@ spec:
   - kubernetes
   - channel
   - stakater
+  - openshift
   links:
   - name: Slack Operator
     url: https://slack-operator.domain
