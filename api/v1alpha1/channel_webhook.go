@@ -28,14 +28,27 @@ import (
 // log is for logging in this package.
 var channellog = logf.Log.WithName("channel-resource")
 
-// SetupWebhookWithManager sets up webhooks
 func (r *Channel) SetupWebhookWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewWebhookManagedBy(mgr).
 		For(r).
 		Complete()
 }
 
-// +kubebuilder:webhook:verbs=create;update,path=/validate-slack-stakater-com-v1alpha1-channel,mutating=false,failurePolicy=fail,groups=slack.stakater.com,resources=channels,versions=v1alpha1,name=vchannel.kb.io
+// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
+
+// +kubebuilder:webhook:path=/mutate-slack-stakater-com-stakater-com-v1alpha1-channel,mutating=true,failurePolicy=fail,groups=slack.stakater.com.stakater.com,resources=channels,verbs=create;update,versions=v1alpha1,name=mchannel.kb.io
+
+var _ webhook.Defaulter = &Channel{}
+
+// Default implements webhook.Defaulter so a webhook will be registered for the type
+func (r *Channel) Default() {
+	channellog.Info("default", "name", r.Name)
+
+	// TODO(user): fill in your defaulting logic.
+}
+
+// TODO(user): change verbs to "verbs=create;update;delete" if you want to enable deletion validation.
+// +kubebuilder:webhook:verbs=create;update,path=/validate-slack-stakater-com-stakater-com-v1alpha1-channel,mutating=false,failurePolicy=fail,groups=slack.stakater.com.stakater.com,resources=channels,versions=v1alpha1,name=vchannel.kb.io
 
 var _ webhook.Validator = &Channel{}
 
@@ -43,6 +56,7 @@ var _ webhook.Validator = &Channel{}
 func (r *Channel) ValidateCreate() error {
 	channellog.Info("validate create", "name", r.Name)
 
+	// TODO(user): fill in your validation logic upon object creation.
 	return nil
 }
 
@@ -51,7 +65,6 @@ func (r *Channel) ValidateUpdate(old runtime.Object) error {
 	channellog.Info("validate update", "name", r.Name)
 
 	oldChannel, ok := old.(*Channel)
-
 	if !ok {
 		return fmt.Errorf("Error casting old runtime object to %T from %T", oldChannel, old)
 	}
@@ -62,10 +75,10 @@ func (r *Channel) ValidateUpdate(old runtime.Object) error {
 func (r *Channel) ValidateDelete() error {
 	channellog.Info("validate delete", "name", r.Name)
 
+	// TODO(user): fill in your validation logic upon object deletion.
 	return nil
 }
 
-// TODO: test & write tst
 func ValidateImmutableFields(newChannel *Channel, oldChannel *Channel) error {
 	if oldChannel.Spec.Private != newChannel.Spec.Private {
 		return fmt.Errorf("Field 'isPrivate' is immutable and cannot be changed after Slack Channel has been created")

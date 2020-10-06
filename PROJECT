@@ -1,7 +1,7 @@
 domain: stakater.com
 layout: go.kubebuilder.io/v2
-repo: github.com/stakater/slack-operator
 projectName: slack-operator
+repo: github.com/stakater/slack-operator
 resources:
 - group: slack
   kind: Channel
