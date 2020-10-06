@@ -4,8 +4,22 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
+	secretsUtil "github.com/stakater/operator-utils/util/secrets"
 	"gopkg.in/yaml.v2"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+)
+
+const (
+	SlackDefaultSecretName string = "slack-secret"
+	SlackAPITokenSecretKey string = "APIToken"
+)
+
+var (
+	setupLog               = ctrl.Log.WithName("setup")
+	SlackSecretName string = getConfigSecretName()
 )
 
 // Config struct for operator config yaml
@@ -57,4 +71,33 @@ func GetOperatorConfig() (*Config, error) {
 		return nil, err
 	}
 	return config, nil
+}
+
+func getConfigSecretName() string {
+	configSecretName, _ := os.LookupEnv("CONFIG_SECRET_NAME")
+	if len(configSecretName) == 0 {
+		configSecretName = SlackDefaultSecretName
+		setupLog.Info("CONFIG_SECRET_NAME is unset, using default value: " + SlackDefaultSecretName)
+	}
+	return configSecretName
+}
+
+func ReadSlackTokenSecret(k8sReader client.Reader) string {
+	operatorNamespace, _ := os.LookupEnv("OPERATOR_NAMESPACE")
+	if len(operatorNamespace) == 0 {
+		operatorNamespaceTemp, err := k8sutil.GetOperatorNamespace()
+		if err != nil {
+			setupLog.Error(err, "Unable to get operator namespace")
+			os.Exit(1)
+		}
+		operatorNamespace = operatorNamespaceTemp
+	}
+
+	token, err := secretsUtil.LoadSecretData(k8sReader, SlackSecretName, operatorNamespace, SlackAPITokenSecretKey)
+	if err != nil {
+		setupLog.Error(err, "Could not read API token from key", "secretName", SlackSecretName, "secretKey", SlackAPITokenSecretKey)
+		os.Exit(1)
+	}
+
+	return token
 }

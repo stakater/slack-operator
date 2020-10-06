@@ -1,4 +1,5 @@
 # slack-operator
+
 Kubernetes operator for Slack
 
 ## About
@@ -35,17 +36,20 @@ data:
 
 - Make sure that [certman](https://cert-manager.io/) is deployed in your cluster since webhooks require certman to generate valid certs since webhooks serve using HTTPS
 - To install certman
+
 ```terminal
 $ kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v0.16.1/cert-manager.yaml
 ```
+
 - Deploy operator
+
 ```terminal
 $ oc apply -f bundle/manifests
 ```
 
 ## Local Development
 
-[Operator-sdk v1.0.0](https://github.com/operator-framework/operator-sdk/releases/tag/v1.0.0) is required for local development.
+[Operator-sdk v1.0.1](https://github.com/operator-framework/operator-sdk/releases/tag/v1.0.1) is required for local development.
 
 1. Create `slack-secret` secret
 2. Run `make run ENABLE_WEBHOOKS=false WATCH_NAMESPACE=default OPERATOR_NAMESPACE=default` where `WATCH_NAMESPACE` denotes the namespaces that the operator is supposed to watch and `OPERATOR_NAMESPACE` is the namespace in which it's supposed to be deployed.
@@ -56,9 +60,11 @@ $ oc apply -f bundle/manifests
 ## Running Tests
 
 ### Pre-requisites:
+
 1. Create a namespace with the name `test`
 2. Create `slack-secret` secret in test namespace
 
 ### To run tests:
+
 Use the following command to run tests:
 `make test OPERATOR_NAMESPACE=test USE_EXISTING_CLUSTER=true`

@@ -28,14 +28,11 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
-	secretsUtil "github.com/stakater/operator-utils/util/secrets"
 	slackv1alpha1 "github.com/stakater/slack-operator/api/v1alpha1"
 	"github.com/stakater/slack-operator/controllers"
-	"github.com/stakater/slack-operator/pkg/config"
+	config "github.com/stakater/slack-operator/pkg/config"
 	slack "github.com/stakater/slack-operator/pkg/slack"
 	// +kubebuilder:scaffold:imports
 )
@@ -92,13 +89,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	config, err := config.GetOperatorConfig()
-	if err != nil {
-		setupLog.Error(err, "Unable to read operator config")
-		os.Exit(1)
-	}
-
-	slackAPIToken := readSlackTokenSecret(config, mgr.GetAPIReader())
+	slackAPIToken := config.ReadSlackTokenSecret(mgr.GetAPIReader())
 
 	if err = (&controllers.ChannelReconciler{
 		Client:       mgr.GetClient(),
@@ -136,28 +127,4 @@ func getWatchNamespace() (string, error) {
 		return "", fmt.Errorf("%s must be set", watchNamespaceEnvVar)
 	}
 	return ns, nil
-}
-
-func readSlackTokenSecret(config *config.Config, k8sReader client.Reader) string {
-	secretName := config.Slack.APIToken.SecretName
-	secretKey := config.Slack.APIToken.Key
-
-	operatorNamespace, _ := os.LookupEnv("OPERATOR_NAMESPACE")
-	if len(operatorNamespace) == 0 {
-		operatorNamespaceTemp, err := k8sutil.GetOperatorNamespace()
-		if err != nil {
-			setupLog.Error(err, "Unable to get operator namespace")
-			os.Exit(1)
-		}
-		operatorNamespace = operatorNamespaceTemp
-	}
-
-	token, err := secretsUtil.LoadSecretData(k8sReader, secretName, operatorNamespace, secretKey)
-
-	if err != nil {
-		setupLog.Error(err, "Could not read API token from key", "secretName", secretName, "secretKey", secretKey)
-		os.Exit(1)
-	}
-
-	return token
 }

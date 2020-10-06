@@ -5,6 +5,7 @@ kind: CustomResourceDefinition
 metadata:
   name: channels.slack.stakater.com
 spec:
+  preserveUnknownFields: false
   conversion:
     strategy: Webhook
     webhookClientConfig:
@@ -15,3 +16,4 @@ spec:
         namespace: system
         name: webhook-service
         path: /convert
+        port: 443

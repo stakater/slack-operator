@@ -6,12 +6,22 @@ metadata:
   creationTimestamp: null
   name: channels.slack.stakater.com
 spec:
+  conversion:
+  strategy: Webhook
+  webhookClientConfig:
+    caBundle: Cg==
+    service:
+      name: slack-webhook-service
+      namespace: slack-operator-system
+      path: /convert
+      port: 443
   group: slack.stakater.com
   names:
     kind: Channel
     listKind: ChannelList
     plural: channels
     singular: channel
+  preserveUnknownFields: false
   scope: Namespaced
   subresources:
     status: {}
