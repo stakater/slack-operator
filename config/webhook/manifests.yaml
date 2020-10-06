@@ -11,12 +11,12 @@ webhooks:
     service:
       name: webhook-service
       namespace: system
-      path: /mutate-slack-stakater-com-stakater-com-v1alpha1-channel
+      path: /mutate-slack-stakater-com-v1alpha1-channel
   failurePolicy: Fail
   name: mchannel.kb.io
   rules:
   - apiGroups:
-    - slack.stakater.com.stakater.com
+    - slack.stakater.com
     apiVersions:
     - v1alpha1
     operations:
@@ -37,12 +37,12 @@ webhooks:
     service:
       name: webhook-service
       namespace: system
-      path: /validate-slack-stakater-com-stakater-com-v1alpha1-channel
+      path: /validate-slack-stakater-com-v1alpha1-channel
   failurePolicy: Fail
   name: vchannel.kb.io
   rules:
   - apiGroups:
-    - slack.stakater.com.stakater.com
+    - slack.stakater.com
     apiVersions:
     - v1alpha1
     operations:

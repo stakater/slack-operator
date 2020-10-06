@@ -36,7 +36,7 @@ func (r *Channel) SetupWebhookWithManager(mgr ctrl.Manager) error {
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 
-// +kubebuilder:webhook:path=/mutate-slack-stakater-com-stakater-com-v1alpha1-channel,mutating=true,failurePolicy=fail,groups=slack.stakater.com.stakater.com,resources=channels,verbs=create;update,versions=v1alpha1,name=mchannel.kb.io
+// +kubebuilder:webhook:path=/mutate-slack-stakater-com-v1alpha1-channel,mutating=true,failurePolicy=fail,groups=slack.stakater.com,resources=channels,verbs=create;update,versions=v1alpha1,name=mchannel.kb.io
 
 var _ webhook.Defaulter = &Channel{}
 
@@ -48,7 +48,7 @@ func (r *Channel) Default() {
 }
 
 // TODO(user): change verbs to "verbs=create;update;delete" if you want to enable deletion validation.
-// +kubebuilder:webhook:verbs=create;update,path=/validate-slack-stakater-com-stakater-com-v1alpha1-channel,mutating=false,failurePolicy=fail,groups=slack.stakater.com.stakater.com,resources=channels,versions=v1alpha1,name=vchannel.kb.io
+// +kubebuilder:webhook:verbs=create;update,path=/validate-slack-stakater-com-v1alpha1-channel,mutating=false,failurePolicy=fail,groups=slack.stakater.com,resources=channels,versions=v1alpha1,name=vchannel.kb.io
 
 var _ webhook.Validator = &Channel{}
 
