@@ -170,5 +170,4 @@ spec:
   provider:
     name: stakater
     url: https://stakater.com
-  replaces: slack-operator.v0.0.1
   version: 0.0.2
