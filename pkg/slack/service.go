@@ -1,6 +1,8 @@
 package slack
 
 import (
+	"html"
+
 	"github.com/go-logr/logr"
 	"github.com/slack-go/slack"
 
@@ -72,7 +74,7 @@ func (s *SlackService) SetDescription(channelID string, description string) (*sl
 		return nil, err
 	}
 
-	if channel.Purpose.Value == description {
+	if html.UnescapeString(channel.Purpose.Value) == description {
 		return channel, nil
 	}
 
@@ -98,7 +100,7 @@ func (s *SlackService) SetTopic(channelID string, topic string) (*slack.Channel,
 		return nil, err
 	}
 
-	if channel.Topic.Value == topic {
+	if html.UnescapeString(channel.Topic.Value) == topic {
 		return channel, nil
 	}
 
@@ -123,7 +125,7 @@ func (s *SlackService) RenameChannel(channelID string, newName string) (*slack.C
 		log.Error(err, "Error fetching channel")
 		return nil, err
 	}
-	if channel.Name == newName {
+	if html.UnescapeString(channel.Name) == newName {
 		return channel, nil
 	}
 
