@@ -19,6 +19,7 @@ type Service interface {
 	InviteUsers(string, []string) error
 	GetChannel(string) (*slack.Channel, error)
 	GetChannelCRFromChannel(*slack.Channel) *slackv1alpha1.Channel
+	IsChannelUpdated(*slackv1alpha1.Channel) (bool, error)
 }
 
 // SlackService structure
@@ -188,4 +189,61 @@ func (s *SlackService) GetChannelCRFromChannel(existingChannel *slack.Channel) *
 	channel.Spec.Users = existingChannel.Members
 
 	return &channel
+}
+
+func (s *SlackService) IsChannelUpdated(channel *slackv1alpha1.Channel) (bool, error) {
+	log := s.log.WithValues("channelID", channel.Status.ID)
+
+	channelID := channel.Status.ID
+	name := channel.Spec.Name
+	topic := channel.Spec.Topic
+	description := channel.Spec.Description
+	userEmails := channel.Spec.Users
+
+	existingChannel, err := s.api.GetConversationInfo(channel.Status.ID, false)
+	if err != nil {
+		log.Error(err, "Error fetching channel")
+		return false, err
+	}
+
+	if html.UnescapeString(existingChannel.Name) != name {
+		return true, nil
+	}
+	if html.UnescapeString(existingChannel.Topic.Value) != topic {
+		return true, nil
+	}
+	if html.UnescapeString(existingChannel.Purpose.Value) != description {
+		return true, nil
+	}
+
+	channelUserIDs, _, err := s.api.GetUsersInConversation(&slack.GetUsersInConversationParameters{
+		ChannelID: channelID,
+		Limit:     100000,
+	})
+	if err != nil {
+		log.Error(err, "Error getting users in a conversation")
+		return false, err
+	}
+
+	for _, email := range userEmails {
+		user, err := s.api.GetUserByEmail(email)
+		if err != nil {
+			log.Error(err, "Error fetching user by Email")
+			return false, err
+		}
+
+		found := false
+		for _, id := range channelUserIDs {
+			if user.ID == id {
+				found = true
+				break
+			}
+		}
+
+		if found == false {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }
