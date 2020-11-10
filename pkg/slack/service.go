@@ -240,7 +240,7 @@ func (s *SlackService) IsChannelUpdated(channel *slackv1alpha1.Channel) (bool, e
 			}
 		}
 
-		if found == false {
+		if !found {
 			return true, nil
 		}
 	}
