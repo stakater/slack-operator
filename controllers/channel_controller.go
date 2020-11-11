@@ -116,9 +116,19 @@ func (r *ChannelReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	}
 
 	existingChannelCR := r.SlackService.GetChannelCRFromChannel(existingChannel)
+
 	err = slackv1alpha1.ValidateImmutableFields(existingChannelCR, channel)
 	if err != nil {
 		return reconcilerUtil.ManageError(r.Client, channel, err, true)
+	}
+
+	updated, err := r.SlackService.IsChannelUpdated(channel)
+	if !updated {
+		log.Info("Skipping update. No changes found")
+		return reconcilerUtil.DoNotRequeue()
+	}
+	if err != nil {
+		return reconcilerUtil.RequeueWithError(err)
 	}
 
 	return r.updateSlackChannel(ctx, channel)
