@@ -4,7 +4,7 @@ Kubernetes operator for Slack
 
 ## About
 
-Slack operator is used to automate the process of setting up a Slack channle for alertmanager in a k8s native way. By using CRDs it lets you:
+Slack operator is used to automate the process of setting up a Slack channel for alertmanager in a k8s native way. By using CRDs it lets you:
 
 1. Manage Channels
 2. Configure Issues
