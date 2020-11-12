@@ -198,7 +198,6 @@ spec:
   provider:
     name: stakater
     url: https://stakater.com
-  replaces: slack-operator.v0.0.6
   version: 0.0.7
   webhookdefinitions:
   - admissionReviewVersions: null
