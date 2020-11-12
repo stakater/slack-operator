@@ -17,6 +17,7 @@ type Service interface {
 	RenameChannel(string, string) (*slack.Channel, error)
 	ArchiveChannel(string) error
 	InviteUsers(string, []string) error
+	RemoveUsers(string, []string) error
 	GetChannel(string) (*slack.Channel, error)
 	GetUsersInChannel(channelID string) ([]string, error)
 	GetChannelCRFromChannel(*slack.Channel) *slackv1alpha1.Channel
@@ -171,12 +172,6 @@ func (s *SlackService) GetUsersInChannel(channelID string) ([]string, error) {
 func (s *SlackService) InviteUsers(channelID string, userEmails []string) error {
 	log := s.log.WithValues("channelID", channelID)
 
-	channelUserIDs, err := s.GetUsersInChannel(channelID)
-	if err != nil {
-		log.Error(err, "Error getting users in a conversation")
-		return err
-	}
-
 	for _, email := range userEmails {
 		user, err := s.api.GetUserByEmail(email)
 
@@ -192,6 +187,19 @@ func (s *SlackService) InviteUsers(channelID string, userEmails []string) error 
 			log.Error(err, "Error Inviting user to channel", "userID", user.ID)
 			return err
 		}
+	}
+
+	return nil
+}
+
+// RemoveUsers remove users from the slack channel
+func (s *SlackService) RemoveUsers(channelID string, userEmails []string) error {
+	log := s.log.WithValues("channelID", channelID)
+
+	channelUserIDs, err := s.GetUsersInChannel(channelID)
+	if err != nil {
+		log.Error(err, "Error getting users in a conversation")
+		return err
 	}
 
 	for _, userId := range channelUserIDs {

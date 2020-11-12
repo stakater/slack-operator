@@ -12,6 +12,7 @@ var NameTakenConversationName = "name-taken"
 var PublicConversationID = "C0EAQDV4Z"
 var PrivateConversationID = "Y7HGFWC6Q"
 var NotFoundConversationID = "-"
+var NotFoundUserID = "-"
 var BotID = "U023BECGF"
 var Description = "My channel Description"
 
@@ -81,7 +82,7 @@ func getConversationNameResponse(name string) string {
 		nowAsJSONTime(), BotID, name, "false", "", "", 0, "", "", 0, 0)
 }
 
-func getConversationArchiveRespose() string {
+func getConversationArchiveResponse() string {
 	return `
 	{
 		"ok": true
@@ -108,6 +109,24 @@ func getConversationPurposeResponse(purpose string) string {
 	return fmt.Sprintf(templateConversationJSON, PublicConversationID, ConversationName,
 		nowAsJSONTime(), BotID, ConversationName, "false", "random topic", BotID,
 		nowAsJSONTime(), purpose, BotID, nowAsJSONTime(), 0)
+}
+
+func getMembersInConversationResponse() string {
+	return membersInConversationJSON
+}
+
+func getConversationNotFoundResponse() string {
+	return channelNotFoundJSON
+}
+
+func getUserNotFoundResponse() string {
+	return userNotFoundJSON
+}
+
+func kickUserFromConversationSuccessResponse() string {
+	return `{
+		"ok": true
+	}`
 }
 
 const ExistingUserEmail = "iamuser@slack.com"
@@ -154,10 +173,30 @@ var templateUserJSON = `
     }
 }`
 
+var membersInConversationJSON = `
+{
+	"ok": true,
+	"members": [
+		"U023BECGF",
+		"U061F7AUR",
+		"W012A3CDE"
+	],
+	"response_metadata": {
+		"next_cursor": "e3VzZXJfaWQ6IFcxMjM0NTY3fQ=="
+	}
+}`
+
 var userNotFoundJSON = `
 {
     "ok": false,
     "error": "users_not_found"
+}
+`
+
+var channelNotFoundJSON = `
+{
+	"ok": false,
+	"error": "channel_not_found"
 }
 `
 

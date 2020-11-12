@@ -170,6 +170,12 @@ func (r *ChannelReconciler) updateSlackChannel(ctx context.Context, channel *sla
 		return reconcilerUtil.ManageError(r.Client, channel, err, false)
 	}
 
+	err = r.SlackService.RemoveUsers(channelID, users)
+	if err != nil {
+		log.Error(err, "Error removing users from the channel")
+		return reconcilerUtil.ManageError(r.Client, channel, err, false)
+	}
+
 	return reconcilerUtil.ManageSuccess(r.Client, channel)
 }
 
