@@ -26,7 +26,7 @@ var _ = Describe("ChannelController", func() {
 	Describe("Creating SlackChannel resource", func() {
 		Context("With required fields", func() {
 			It("should set status.ID to public channel ID", func() {
-				_ = util.CreateChannel(channelName, false, "", "", []string{}, ns)
+				_ = util.CreateChannel(channelName, false, "", "", []string{mock.ExistingUserEmail}, ns)
 				channel := util.GetChannel(channelName, ns)
 
 				Expect(channel.Status.ID).To(Equal(slackMock.PublicConversationID))
@@ -35,7 +35,7 @@ var _ = Describe("ChannelController", func() {
 			})
 
 			It("should set error condition if channel with same name already exists", func() {
-				_ = util.CreateChannel(mock.NameTakenConversationName, false, "", "", []string{}, ns)
+				_ = util.CreateChannel(mock.NameTakenConversationName, false, "", "", []string{mock.ExistingUserEmail}, ns)
 				channel := util.GetChannel(mock.NameTakenConversationName, ns)
 
 				Expect(len(channel.Status.Conditions)).To(Equal(1))
@@ -47,7 +47,7 @@ var _ = Describe("ChannelController", func() {
 
 		Context("With private field true", func() {
 			It("should set status.ID status to private channel ID and not set status.Error", func() {
-				_ = util.CreateChannel(channelName, true, "", "", []string{}, ns)
+				_ = util.CreateChannel(channelName, true, "", "", []string{mock.ExistingUserEmail}, ns)
 				channel := util.GetChannel(channelName, ns)
 
 				Expect(channel.Status.ID).To(Equal(slackMock.PrivateConversationID))
@@ -60,7 +60,7 @@ var _ = Describe("ChannelController", func() {
 			It("should set channel description", func() {
 				description := "my description"
 
-				_ = util.CreateChannel(channelName, true, "", description, []string{}, ns)
+				_ = util.CreateChannel(channelName, true, "", description, []string{mock.ExistingUserEmail}, ns)
 				channel := util.GetChannel(channelName, ns)
 
 				Expect(channel.Spec.Description).To(Equal(description))
@@ -73,7 +73,7 @@ var _ = Describe("ChannelController", func() {
 			It("should set channel topic", func() {
 				topic := "topic of the channel"
 
-				_ = util.CreateChannel(channelName, true, topic, "", []string{}, ns)
+				_ = util.CreateChannel(channelName, true, topic, "", []string{mock.ExistingUserEmail}, ns)
 				channel := util.GetChannel(channelName, ns)
 
 				Expect(channel.Spec.Topic).To(Equal(topic))
@@ -107,7 +107,7 @@ var _ = Describe("ChannelController", func() {
 	Describe("Updating SlackChannel resource", func() {
 		Context("With new name", func() {
 			It("should assign new name to channel", func() {
-				_ = util.CreateChannel(channelName, false, "", "", []string{}, ns)
+				_ = util.CreateChannel(channelName, false, "", "", []string{mock.ExistingUserEmail}, ns)
 				channel := util.GetChannel(channelName, ns)
 
 				newName := "old-channel-new-name"
@@ -137,7 +137,7 @@ var _ = Describe("ChannelController", func() {
 	Describe("Deleting SlackChannel resource", func() {
 		Context("When Channel on slack was created", func() {
 			It("should remove resource and delete channel ", func() {
-				_ = util.CreateChannel(channelName, false, "", "", []string{}, ns)
+				_ = util.CreateChannel(channelName, false, "", "", []string{mock.ExistingUserEmail}, ns)
 				channel := util.GetChannel(channelName, ns)
 
 				Expect(channel.Status.ID).ToNot(BeEmpty())
@@ -155,7 +155,7 @@ var _ = Describe("ChannelController", func() {
 
 		Context("When Channel on slack was not created", func() {
 			It("should remove resource ", func() {
-				_ = util.CreateChannel(mock.NameTakenConversationName, false, "", "", []string{}, ns)
+				_ = util.CreateChannel(mock.NameTakenConversationName, false, "", "", []string{mock.ExistingUserEmail}, ns)
 				channel := util.GetChannel(mock.NameTakenConversationName, ns)
 
 				Expect(len(channel.Status.Conditions)).To(Equal(1))

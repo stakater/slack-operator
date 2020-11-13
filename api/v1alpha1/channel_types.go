@@ -24,12 +24,16 @@ import (
 // ChannelSpec defines the desired state of Channel
 type ChannelSpec struct {
 	// Name of the slack channel
+	// +required
 	Name string `json:"name"`
 
 	// Make the channel private or public
+	// +required
 	Private bool `json:"private,omitempty"`
 
 	// List of user IDs of the users to invite
+	// +kubebuilder:validation:MinItems=1
+	// +required
 	Users []string `json:"users,omitempty"`
 
 	// Description of the channel
