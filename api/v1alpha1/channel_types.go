@@ -28,6 +28,7 @@ type ChannelSpec struct {
 	Name string `json:"name"`
 
 	// Make the channel private or public
+	// +optional
 	Private bool `json:"private,omitempty"`
 
 	// List of user IDs of the users to invite
@@ -36,9 +37,11 @@ type ChannelSpec struct {
 	Users []string `json:"users,omitempty"`
 
 	// Description of the channel
+	// +optional
 	Description string `json:"description,omitempty"`
 
 	// Topic of the channel
+	// +optional
 	Topic string `json:"topic,omitempty"`
 }
 
