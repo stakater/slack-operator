@@ -88,6 +88,11 @@ func (r *ChannelReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		}
 	}
 
+	err = r.SlackService.IsValidChannel(channel)
+	if err != nil {
+		return reconcilerUtil.ManageError(r.Client, channel, err, true)
+	}
+
 	if channel.Status.ID == "" {
 		name := channel.Spec.Name
 		isPrivate := channel.Spec.Private
@@ -123,12 +128,13 @@ func (r *ChannelReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	}
 
 	updated, err := r.SlackService.IsChannelUpdated(channel)
+	if err != nil {
+		return reconcilerUtil.ManageError(r.Client, channel, err, true)
+	}
+
 	if !updated {
 		log.Info("Skipping update. No changes found")
 		return reconcilerUtil.DoNotRequeue()
-	}
-	if err != nil {
-		return reconcilerUtil.RequeueWithError(err)
 	}
 
 	return r.updateSlackChannel(ctx, channel)
@@ -169,6 +175,12 @@ func (r *ChannelReconciler) updateSlackChannel(ctx context.Context, channel *sla
 		return reconcilerUtil.ManageError(r.Client, channel, err, false)
 	}
 
+	err = r.SlackService.RemoveUsers(channelID, users)
+	if err != nil {
+		log.Error(err, "Error removing users from the channel")
+		return reconcilerUtil.ManageError(r.Client, channel, err, false)
+	}
+
 	return reconcilerUtil.ManageSuccess(r.Client, channel)
 }
 
@@ -182,7 +194,7 @@ func (r *ChannelReconciler) finalizeChannel(req ctrl.Request, channel *slackv1al
 
 	err := r.SlackService.ArchiveChannel(channelID)
 
-	if err != nil && err.Error() != "channel_not_found" {
+	if err != nil && err.Error() != "channel_not_found" && err.Error() != "already_archived" {
 		return reconcilerUtil.ManageError(r.Client, channel, err, false)
 	}
 

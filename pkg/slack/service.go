@@ -1,6 +1,7 @@
 package slack
 
 import (
+	"fmt"
 	"html"
 
 	"github.com/go-logr/logr"
@@ -17,9 +18,12 @@ type Service interface {
 	RenameChannel(string, string) (*slack.Channel, error)
 	ArchiveChannel(string) error
 	InviteUsers(string, []string) error
+	RemoveUsers(string, []string) error
 	GetChannel(string) (*slack.Channel, error)
+	GetUsersInChannel(channelID string) ([]string, error)
 	GetChannelCRFromChannel(*slack.Channel) *slackv1alpha1.Channel
 	IsChannelUpdated(*slackv1alpha1.Channel) (bool, error)
+	IsValidChannel(*slackv1alpha1.Channel) error
 }
 
 // SlackService structure
@@ -156,6 +160,16 @@ func (s *SlackService) ArchiveChannel(channelID string) error {
 	return nil
 }
 
+// GetUsersInChannel get all the users in the slack channel
+func (s *SlackService) GetUsersInChannel(channelID string) ([]string, error) {
+	userIDs, _, err := s.api.GetUsersInConversation(&slack.GetUsersInConversationParameters{
+		ChannelID: channelID,
+		Limit:     100000,
+	})
+
+	return userIDs, err
+}
+
 // InviteUsers invites users to the slack channel
 func (s *SlackService) InviteUsers(channelID string, userEmails []string) error {
 	log := s.log.WithValues("channelID", channelID)
@@ -176,6 +190,46 @@ func (s *SlackService) InviteUsers(channelID string, userEmails []string) error 
 			return err
 		}
 	}
+
+	return nil
+}
+
+// RemoveUsers remove users from the slack channel
+func (s *SlackService) RemoveUsers(channelID string, userEmails []string) error {
+	log := s.log.WithValues("channelID", channelID)
+
+	channelUserIDs, err := s.GetUsersInChannel(channelID)
+	if err != nil {
+		log.Error(err, "Error getting users in a conversation")
+		return err
+	}
+
+	for _, userId := range channelUserIDs {
+		user, err := s.api.GetUserInfo(userId)
+		if err != nil {
+			log.Error(err, "Error fetching user info")
+			return err
+		}
+
+		if !user.IsBot {
+			found := false
+			for _, email := range userEmails {
+				if email == user.Profile.Email {
+					found = true
+					break
+				}
+			}
+
+			if !found {
+				err = s.api.KickUserFromConversation(channelID, user.ID)
+				if err != nil {
+					log.Error(err, "Error removing user from the conversation")
+					return err
+				}
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -216,15 +270,13 @@ func (s *SlackService) IsChannelUpdated(channel *slackv1alpha1.Channel) (bool, e
 		return true, nil
 	}
 
-	channelUserIDs, _, err := s.api.GetUsersInConversation(&slack.GetUsersInConversationParameters{
-		ChannelID: channelID,
-		Limit:     100000,
-	})
+	channelUserIDs, err := s.GetUsersInChannel(channelID)
 	if err != nil {
 		log.Error(err, "Error getting users in a conversation")
 		return false, err
 	}
 
+	// Checking if the user is added
 	for _, email := range userEmails {
 		user, err := s.api.GetUserByEmail(email)
 		if err != nil {
@@ -245,5 +297,36 @@ func (s *SlackService) IsChannelUpdated(channel *slackv1alpha1.Channel) (bool, e
 		}
 	}
 
+	// Checking if the user is removed
+	for _, userId := range channelUserIDs {
+		user, err := s.api.GetUserInfo(userId)
+		if err != nil {
+			log.Error(err, "Error fetching user info")
+			return false, err
+		}
+
+		if !user.IsBot {
+			found := false
+			for _, email := range userEmails {
+				if email == user.Profile.Email {
+					found = true
+					break
+				}
+			}
+
+			if !found {
+				return true, nil
+			}
+		}
+	}
+
 	return false, nil
+}
+
+func (s *SlackService) IsValidChannel(channel *slackv1alpha1.Channel) error {
+	if len(channel.Spec.Users) < 1 {
+		return fmt.Errorf("Users can not be empty")
+	}
+
+	return nil
 }

@@ -39,6 +39,12 @@ func InitSlackTestServer() *slacktest.Server {
 		func(c slacktest.Customize) {
 			c.Handle("/users.lookupByEmail", usersLookupByEmailHandler)
 		},
+		func(c slacktest.Customize) {
+			c.Handle("/conversations.members", getMembersInConversationHandler)
+		},
+		func(c slacktest.Customize) {
+			c.Handle("/conversations.kick", kickMemberFromConversationHandler)
+		},
 	)
 
 	return testServer
@@ -104,7 +110,7 @@ func archiveConversationHandler(w http.ResponseWriter, r *http.Request) {
 	if channelID == NotFoundConversationID {
 		response = getConversationArchiveChannelNotFoundRespose()
 	} else {
-		response = getConversationArchiveRespose()
+		response = getConversationArchiveResponse()
 	}
 	_, _ = w.Write([]byte(response))
 }
@@ -112,6 +118,37 @@ func archiveConversationHandler(w http.ResponseWriter, r *http.Request) {
 // handle conversations.invite
 func inviteConversationHandler(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write([]byte(inviteConversationJSON))
+}
+
+// handle conversations.members
+func getMembersInConversationHandler(w http.ResponseWriter, r *http.Request) {
+	channelID := extractParamValue(r, "channel")
+
+	response := ""
+	if channelID == NotFoundConversationID {
+		response = getConversationNotFoundResponse()
+	} else {
+		response = getMembersInConversationResponse()
+	}
+
+	_, _ = w.Write([]byte(response))
+}
+
+// handle conversations.kick
+func kickMemberFromConversationHandler(w http.ResponseWriter, r *http.Request) {
+	channelID := extractParamValue(r, "channel")
+	userID := extractParamValue(r, "user")
+
+	response := ""
+	if channelID == NotFoundConversationID {
+		response = getConversationNotFoundResponse()
+	} else if userID == NotFoundUserID {
+		response = getUserNotFoundResponse()
+	} else {
+		response = kickUserFromConversationSuccessResponse()
+	}
+
+	_, _ = w.Write([]byte(response))
 }
 
 // handle users.lookupByEmail

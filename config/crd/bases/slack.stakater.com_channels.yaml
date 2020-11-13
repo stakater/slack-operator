@@ -52,6 +52,7 @@ spec:
               description: List of user IDs of the users to invite
               items:
                 type: string
+              minItems: 1
               type: array
           required:
           - name
