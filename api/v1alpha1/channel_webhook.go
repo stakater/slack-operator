@@ -56,7 +56,10 @@ var _ webhook.Validator = &Channel{}
 func (r *Channel) ValidateCreate() error {
 	channellog.Info("validate create", "name", r.Name)
 
-	// TODO(user): fill in your validation logic upon object creation.
+	if len(r.Spec.Users) < 1 {
+		return fmt.Errorf("Users can not be empty")
+	}
+
 	return nil
 }
 
@@ -68,6 +71,11 @@ func (r *Channel) ValidateUpdate(old runtime.Object) error {
 	if !ok {
 		return fmt.Errorf("Error casting old runtime object to %T from %T", oldChannel, old)
 	}
+
+	if len(r.Spec.Users) < 1 {
+		return fmt.Errorf("Users can not be empty")
+	}
+
 	return ValidateImmutableFields(r, oldChannel)
 }
 

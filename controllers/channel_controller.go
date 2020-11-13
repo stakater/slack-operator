@@ -88,6 +88,11 @@ func (r *ChannelReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		}
 	}
 
+	err = r.SlackService.IsValidChannel(channel)
+	if err != nil {
+		return reconcilerUtil.ManageError(r.Client, channel, err, true)
+	}
+
 	if channel.Status.ID == "" {
 		name := channel.Spec.Name
 		isPrivate := channel.Spec.Private
@@ -189,7 +194,7 @@ func (r *ChannelReconciler) finalizeChannel(req ctrl.Request, channel *slackv1al
 
 	err := r.SlackService.ArchiveChannel(channelID)
 
-	if err != nil && err.Error() != "channel_not_found" {
+	if err != nil && err.Error() != "channel_not_found" && err.Error() != "already_archived" {
 		return reconcilerUtil.ManageError(r.Client, channel, err, false)
 	}
 

@@ -1,6 +1,7 @@
 package slack
 
 import (
+	"fmt"
 	"html"
 
 	"github.com/go-logr/logr"
@@ -22,6 +23,7 @@ type Service interface {
 	GetUsersInChannel(channelID string) ([]string, error)
 	GetChannelCRFromChannel(*slack.Channel) *slackv1alpha1.Channel
 	IsChannelUpdated(*slackv1alpha1.Channel) (bool, error)
+	IsValidChannel(*slackv1alpha1.Channel) error
 }
 
 // SlackService structure
@@ -319,4 +321,12 @@ func (s *SlackService) IsChannelUpdated(channel *slackv1alpha1.Channel) (bool, e
 	}
 
 	return false, nil
+}
+
+func (s *SlackService) IsValidChannel(channel *slackv1alpha1.Channel) error {
+	if len(channel.Spec.Users) < 1 {
+		return fmt.Errorf("Users can not be empty")
+	}
+
+	return nil
 }
