@@ -138,11 +138,6 @@ jobs:
           VERSION: ${{ steps.generate_operator_tag.outputs.new_tag }}
         run: make bundle
 
-      - name: Generate Package Manifests
-        env:
-          VERSION: ${{ steps.generate_operator_tag.outputs.new_tag }}
-        run: make packagemanifests
-
       # Commit back changes
       - name: Commit files
         run: |
