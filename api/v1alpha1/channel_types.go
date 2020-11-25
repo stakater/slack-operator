@@ -17,7 +17,6 @@ limitations under the License.
 package v1alpha1
 
 import (
-	"github.com/operator-framework/operator-sdk/pkg/status"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -51,7 +50,7 @@ type ChannelStatus struct {
 	ID string `json:"id"`
 
 	// Status conditions
-	Conditions status.Conditions `json:"conditions,omitempty"`
+	Conditions []metav1.Condition `json:"conditions,omitempty"`
 }
 
 // +kubebuilder:object:root=true
@@ -80,11 +79,11 @@ func init() {
 }
 
 // GetReconcileStatus - returns conditions, required for making Channel ConditionsStatusAware
-func (channel *Channel) GetReconcileStatus() status.Conditions {
+func (channel *Channel) GetReconcileStatus() []metav1.Condition {
 	return channel.Status.Conditions
 }
 
 // SetReconcileStatus - sets status, required for making Channel ConditionsStatusAware
-func (channel *Channel) SetReconcileStatus(reconcileStatus status.Conditions) {
+func (channel *Channel) SetReconcileStatus(reconcileStatus []metav1.Condition) {
 	channel.Status.Conditions = reconcileStatus
 }
