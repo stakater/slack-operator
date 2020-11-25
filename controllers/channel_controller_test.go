@@ -3,7 +3,6 @@ package controllers
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/operator-framework/operator-sdk/pkg/status"
 	slackv1alpha1 "github.com/stakater/slack-operator/api/v1alpha1"
 	"github.com/stakater/slack-operator/pkg/slack/mock"
 	slackMock "github.com/stakater/slack-operator/pkg/slack/mock"
@@ -31,7 +30,7 @@ var _ = Describe("ChannelController", func() {
 
 				Expect(channel.Status.ID).To(Equal(slackMock.PublicConversationID))
 				Expect(len(channel.Status.Conditions)).To(Equal(1))
-				Expect(channel.Status.Conditions[0].Reason).To(Equal(status.ConditionReason("Successful")))
+				Expect(channel.Status.Conditions[0].Reason).To(Equal("Successful"))
 			})
 
 			It("should set error condition if channel with same name already exists", func() {
@@ -39,7 +38,7 @@ var _ = Describe("ChannelController", func() {
 				channel := util.GetChannel(mock.NameTakenConversationName, ns)
 
 				Expect(len(channel.Status.Conditions)).To(Equal(1))
-				Expect(channel.Status.Conditions[0].Reason).To(Equal(status.ConditionReason("Failed")))
+				Expect(channel.Status.Conditions[0].Reason).To(Equal("Failed"))
 				Expect(channel.Status.Conditions[0].Message).To(Equal("name_taken"))
 				util.TryDeleteChannel(mock.NameTakenConversationName, ns)
 			})
@@ -52,7 +51,7 @@ var _ = Describe("ChannelController", func() {
 
 				Expect(channel.Status.ID).To(Equal(slackMock.PrivateConversationID))
 				Expect(len(channel.Status.Conditions)).To(Equal(1))
-				Expect(channel.Status.Conditions[0].Reason).To(Equal(status.ConditionReason("Successful")))
+				Expect(channel.Status.Conditions[0].Reason).To(Equal("Successful"))
 			})
 		})
 
@@ -65,7 +64,7 @@ var _ = Describe("ChannelController", func() {
 
 				Expect(channel.Spec.Description).To(Equal(description))
 				Expect(len(channel.Status.Conditions)).To(Equal(1))
-				Expect(channel.Status.Conditions[0].Reason).To(Equal(status.ConditionReason("Successful")))
+				Expect(channel.Status.Conditions[0].Reason).To(Equal("Successful"))
 			})
 		})
 
@@ -78,7 +77,7 @@ var _ = Describe("ChannelController", func() {
 
 				Expect(channel.Spec.Topic).To(Equal(topic))
 				Expect(len(channel.Status.Conditions)).To(Equal(1))
-				Expect(channel.Status.Conditions[0].Reason).To(Equal(status.ConditionReason("Successful")))
+				Expect(channel.Status.Conditions[0].Reason).To(Equal("Successful"))
 			})
 		})
 
@@ -89,7 +88,7 @@ var _ = Describe("ChannelController", func() {
 				channel := util.GetChannel(channelName, ns)
 
 				Expect(len(channel.Status.Conditions)).To(Equal(1))
-				Expect(channel.Status.Conditions[0].Reason).To(Equal(status.ConditionReason("Successful")))
+				Expect(channel.Status.Conditions[0].Reason).To(Equal("Successful"))
 			})
 
 			It("should set error condition when user does not exists", func() {
@@ -98,7 +97,7 @@ var _ = Describe("ChannelController", func() {
 				channel := util.GetChannel(channelName, ns)
 
 				Expect(len(channel.Status.Conditions)).To(Equal(1))
-				Expect(channel.Status.Conditions[0].Reason).To(Equal(status.ConditionReason("Failed")))
+				Expect(channel.Status.Conditions[0].Reason).To(Equal("Failed"))
 				Expect(channel.Status.Conditions[0].Message).To(Equal("users_not_found"))
 			})
 		})
@@ -129,7 +128,7 @@ var _ = Describe("ChannelController", func() {
 				Expect(updatedChannel.Spec.Name).To(Equal(newName))
 
 				Expect(len(channel.Status.Conditions)).To(Equal(1))
-				Expect(channel.Status.Conditions[0].Reason).To(Equal(status.ConditionReason("Successful")))
+				Expect(channel.Status.Conditions[0].Reason).To(Equal("Successful"))
 			})
 		})
 	})
@@ -142,7 +141,7 @@ var _ = Describe("ChannelController", func() {
 
 				Expect(channel.Status.ID).ToNot(BeEmpty())
 				Expect(len(channel.Status.Conditions)).To(Equal(1))
-				Expect(channel.Status.Conditions[0].Reason).To(Equal(status.ConditionReason("Successful")))
+				Expect(channel.Status.Conditions[0].Reason).To(Equal("Successful"))
 
 				util.DeleteChannel(channelName, ns)
 
@@ -159,7 +158,7 @@ var _ = Describe("ChannelController", func() {
 				channel := util.GetChannel(mock.NameTakenConversationName, ns)
 
 				Expect(len(channel.Status.Conditions)).To(Equal(1))
-				Expect(channel.Status.Conditions[0].Reason).To(Equal(status.ConditionReason("Failed")))
+				Expect(channel.Status.Conditions[0].Reason).To(Equal("Failed"))
 
 				util.DeleteChannel(mock.NameTakenConversationName, ns)
 

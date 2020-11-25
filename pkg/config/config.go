@@ -4,7 +4,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
+	util "github.com/stakater/operator-utils/util"
 	secretsUtil "github.com/stakater/operator-utils/util/secrets"
 	"gopkg.in/yaml.v2"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -85,7 +85,7 @@ func getConfigSecretName() string {
 func ReadSlackTokenSecret(k8sReader client.Reader) string {
 	operatorNamespace, _ := os.LookupEnv("OPERATOR_NAMESPACE")
 	if len(operatorNamespace) == 0 {
-		operatorNamespaceTemp, err := k8sutil.GetOperatorNamespace()
+		operatorNamespaceTemp, err := util.GetOperatorNamespace()
 		if err != nil {
 			setupLog.Error(err, "Unable to get operator namespace")
 			os.Exit(1)
