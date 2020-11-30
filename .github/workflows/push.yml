@@ -141,9 +141,9 @@ jobs:
       # Update chart tag to the latest semver tag
       - name: Update Chart Version
         run: |
-          sed -i "s/^version:.*$/version:  ${{ steps.generate_operator_tag.outputs.new_tag }}/" charts/managed-openshift-operator/Chart.yaml
-          sed -i "s/^appVersion:.*$/appVersion:  ${{ steps.generate_operator_tag.outputs.new_tag }}/" charts/managed-openshift-operator/Chart.yaml
-          sed -i "s/tag:.*$/tag:  v${{ steps.generate_operator_tag.outputs.new_tag }}/" charts/managed-openshift-operator/values.yaml
+          sed -i "s/^version:.*$/version:  ${{ steps.generate_operator_tag.outputs.new_tag }}/" charts/slack-operator/Chart.yaml
+          sed -i "s/^appVersion:.*$/appVersion:  ${{ steps.generate_operator_tag.outputs.new_tag }}/" charts/slack-operator/Chart.yaml
+          sed -i "s/tag:.*$/tag:  v${{ steps.generate_operator_tag.outputs.new_tag }}/" charts/slack-operator/values.yaml
 
       # Update CRDs for helm chart
       - name: Update CRDs for Chart
