@@ -1,0 +1,69 @@
+{{- if .Values.rbac.enabled -}}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "slack-operator.fullname" . }}-manager-role
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - get
+  - list
+- apiGroups:
+  - slack.stakater.com
+  resources:
+  - channels
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - slack.stakater.com
+  resources:
+  - channels/status
+  verbs:
+  - get
+  - patch
+  - update
+---
+{{- if .Values.rbac.allowProxyRole }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "slack-operator.fullname" . }}-proxy-role
+rules:
+- apiGroups:
+  - authentication.k8s.io
+  resources:
+  - tokenreviews
+  verbs:
+  - create
+- apiGroups:
+  - authorization.k8s.io
+  resources:
+  - subjectaccessreviews
+  verbs:
+  - create
+{{- end }}
+
+---
+{{- if .Values.rbac.allowMetricsReaderRole }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "slack-operator.fullname" . }}-metrics-reader
+rules:
+- nonResourceURLs:
+  - /metrics
+  verbs:
+  - get
+{{- end }}
+
+{{- end }}

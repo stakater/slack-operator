@@ -138,6 +138,18 @@ jobs:
           VERSION: ${{ steps.generate_operator_tag.outputs.new_tag }}
         run: make bundle
 
+      # Update chart tag to the latest semver tag
+      - name: Update Chart Version
+        run: |
+          sed -i "s/^version:.*$/version:  ${{ steps.generate_operator_tag.outputs.new_tag }}/" charts/managed-openshift-operator/Chart.yaml
+          sed -i "s/^appVersion:.*$/appVersion:  ${{ steps.generate_operator_tag.outputs.new_tag }}/" charts/managed-openshift-operator/Chart.yaml
+          sed -i "s/tag:.*$/tag:  v${{ steps.generate_operator_tag.outputs.new_tag }}/" charts/managed-openshift-operator/values.yaml
+
+      # Update CRDs for helm chart
+      - name: Update CRDs for Chart
+        run: |
+          make generate-helm-chart-manifests
+
       # Commit back changes
       - name: Commit files
         run: |
@@ -157,6 +169,21 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.STAKATER_GITHUB_TOKEN }}
           WITH_V: true
           DEFAULT_BUMP: patch
+
+      # Publish helm chart
+      - name: Publish Helm chart
+        uses: stefanprodan/helm-gh-pages@master
+        with:
+          branch: master
+          repository: stakater-charts
+          target_dir: docs
+          token: ${{ secrets.STAKATER_GITHUB_TOKEN }}
+          charts_dir: charts
+          charts_url: https://stakater.github.io/stakater-charts
+          owner: stakater
+          commit_username: stakater-user
+          commit_email: stakater@gmail.com
+          linting: true
 
       - name: Notify Slack
         uses: 8398a7/action-slack@v3
