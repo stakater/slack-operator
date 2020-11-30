@@ -45,6 +45,8 @@ spec:
         command:
         - /manager
         env:
+        - name: WATCH_NAMESPACE
+          value: {{ .Values.watchNamespaces | join "," | quote }}
         - name: CONFIG_SECRET_NAME
           value: "{{ default "slack-secret" .Values.configSecretName }}"
         - name: ENABLE_WEBHOOKS

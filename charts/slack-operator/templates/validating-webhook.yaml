@@ -14,18 +14,17 @@ webhooks:
         name: {{ include "slack-operator.fullname" . }}-webhook-service
         namespace: {{ .Release.Namespace }}
         path: /validate-slack-stakater-com-v1alpha1-channel
-  failurePolicy: Fail
-  name: vchannel.kb.io
-  rules:
-  - apiGroups:
-    - slack.stakater.com
-    apiVersions:
-    - v1alpha1
-    operations:
-    - CREATE
-    - UPDATE
-    resources:
-    - channels
+    failurePolicy: Fail
+    name: vchannel.kb.io
+    rules:
+    - apiGroups:
+      - slack.stakater.com
+      apiVersions:
+      - v1alpha1
+      operations:
+      - CREATE
+      - UPDATE
+      resources:
+      - channels
 {{- end -}}
-
 
