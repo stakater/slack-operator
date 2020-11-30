@@ -181,9 +181,9 @@ jobs:
           charts_dir: charts
           charts_url: https://stakater.github.io/stakater-charts
           owner: stakater
+          linting: true
           commit_username: stakater-user
           commit_email: stakater@gmail.com
-          linting: true
 
       - name: Notify Slack
         uses: 8398a7/action-slack@v3
