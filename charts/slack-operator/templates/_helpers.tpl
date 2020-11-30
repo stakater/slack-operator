@@ -60,3 +60,15 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+
+{{/*
+Create the name of the tls secret to use
+*/}}
+{{- define "slack-operator.tlsSecretName" -}}
+{{- if .Values.webhook.certs.secret }}
+{{- .Values.webhook.certs.secret }}
+{{- else }}
+{{- printf "%s-webhook-server-cert" (include "slack-operator.fullname" .) }}
+{{- end }}
+{{- end }}
