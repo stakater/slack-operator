@@ -153,3 +153,7 @@ verify-golangci-lint: $(GOLANGCI_LINT)
 	GOLANGCI_LINT_CACHE=$(GOLANGCI_LINT_CACHE) $(GOLANGCI_LINT) run --timeout=300s ./...
 
 verify: verify-fmt verify-golangci-lint
+
+# Generate Helm Chart Resources
+generate-helm-chart-manifests: controller-gen
+	$(CONTROLLER_GEN) crd paths="./..." output:crd:artifacts:config=charts/slack-operator/crds

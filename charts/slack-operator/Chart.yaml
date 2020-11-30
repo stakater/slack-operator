@@ -1,0 +1,27 @@
+apiVersion: v2
+name: slack-operator
+description: Helm Chart for slack-operator
+
+type: application
+
+sources:
+  - https://github.com/stakater/slack-operator
+
+# Helm chart Version
+version: 0.0.11
+
+# Application version to be deployed
+appVersion: 0.0.11
+
+keywords:
+  - stakater
+  - sro
+  - slack-operator
+  - slack
+
+# Maintainers
+maintainers:
+  - name: stakater
+    email: hello@stakater.com
+
+icon: https://github.com/stakater/ForecastleIcons/blob/master/stakater.png

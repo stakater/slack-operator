@@ -1,0 +1,69 @@
+replicaCount: 1
+
+image:
+  repository: stakater/slack-operator
+  tag: v0.0.11
+  pullPolicy: IfNotPresent
+imagePullSecrets: []
+
+nameOverride: ""
+fullnameOverride: ""
+
+watchNamespaces: []
+configSecretName: "slack-secret"
+
+# Webhook Configuration
+webhook:
+  enabled: true
+  certs:
+    secret: ""
+
+service:
+  type: ClusterIP
+  port: 443
+
+# Monitoring Configuration
+serviceMonitor:
+  enabled: false
+
+rbac:
+  enabled: true
+  allowProxyRole: true
+  allowMetricsReaderRole: true
+  allowLeaderElectionRole: true
+
+serviceAccount:
+  create: true
+  annotations: {}
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+resources:
+  {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+podAnnotations: {}
+
+podSecurityContext:
+  {}
+  # fsGroup: 2000
+
+securityContext:
+  {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
