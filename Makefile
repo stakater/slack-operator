@@ -154,6 +154,14 @@ verify-golangci-lint: $(GOLANGCI_LINT)
 
 verify: verify-fmt verify-golangci-lint
 
-# Generate Helm Chart Resources
-generate-helm-chart-manifests: controller-gen
-	$(CONTROLLER_GEN) crd paths="./..." output:crd:artifacts:config=charts/slack-operator/crds
+bump-chart-operator:
+	sed -i "s/^version:.*/version:  $(VERSION)/" charts/slack-operator/Chart.yaml
+	sed -i "s/^appVersion:.*/appVersion:  $(VERSION)/" charts/slack-operator/Chart.yaml
+	sed -i "s/tag:.*/tag:  v$(VERSION)/" charts/slack-operator/values.yaml
+
+bump-chart-crds:
+	sed -i "s/^version:.*/version:  $(VERSION)/" charts/slack-operator-crds/Chart.yaml
+	sed -i "s/^appVersion:.*/appVersion:  $(VERSION)/" charts/slack-operator-crds/Chart.yaml
+
+# Bump Chart
+bump-chart: bump-chart-operator bump-chart-crds
