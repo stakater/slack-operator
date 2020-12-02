@@ -144,6 +144,21 @@ jobs:
           VERSION: ${{ steps.generate_operator_tag.outputs.new_tag }}
         run: make bump-chart
 
+      # Publish helm chart
+      - name: Publish Helm chart
+        uses: stefanprodan/helm-gh-pages@master
+        with:
+          branch: master
+          repository: stakater-charts
+          target_dir: docs
+          token: ${{ secrets.STAKATER_GITHUB_TOKEN }}
+          charts_dir: charts
+          charts_url: https://stakater.github.io/stakater-charts
+          owner: stakater
+          linting: false
+          commit_username: stakater-user
+          commit_email: stakater@gmail.com
+
       # Commit back changes
       - name: Commit files
         run: |
@@ -163,21 +178,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.STAKATER_GITHUB_TOKEN }}
           WITH_V: true
           DEFAULT_BUMP: patch
-
-      # Publish helm chart
-      - name: Publish Helm chart
-        uses: stefanprodan/helm-gh-pages@master
-        with:
-          branch: master
-          repository: stakater-charts
-          target_dir: docs
-          token: ${{ secrets.STAKATER_GITHUB_TOKEN }}
-          charts_dir: charts
-          charts_url: https://stakater.github.io/stakater-charts
-          owner: stakater
-          linting: true
-          commit_username: stakater-user
-          commit_email: stakater@gmail.com
 
       - name: Notify Slack
         uses: 8398a7/action-slack@v3
