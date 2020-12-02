@@ -15,8 +15,6 @@ configSecretName: "slack-secret"
 # Webhook Configuration
 webhook:
   enabled: true
-  certs:
-    secret: ""
 
 service:
   type: ClusterIP

@@ -1,3 +1,7 @@
+{{- if not (.Capabilities.APIVersions.Has "slack.stakater.com/v1alpha1") -}}
+    {{- fail "Required CRDs are missing, slack-operator-crds chart is a pre-requisite of this chart" }}
+{{ end }}
+
 {{- if .Values.webhook.enabled -}}
 ---
 apiVersion: admissionregistration.k8s.io/v1beta1

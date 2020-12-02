@@ -1,12 +1,16 @@
+{{- if not (.Capabilities.APIVersions.Has "slack.stakater.com/v1alpha1") -}}
+    {{- fail "Required CRDs are missing, slack-operator-crds chart is a pre-requisite of this chart" }}
+{{ end }}
+
 {{- if .Values.webhook.enabled -}}
 ---
 apiVersion: admissionregistration.k8s.io/v1beta1
 kind: ValidatingWebhookConfiguration
 metadata:
   annotations:
-    cert-manager.io/inject-ca-from: {{ .Release.Namespace }}r/{{ include "slack-operator.fullname" . }}--serving-cert
+    cert-manager.io/inject-ca-from: {{ .Release.Namespace }}r/{{ include "slack-operator.fullname" . }}-serving-cert
   creationTimestamp: null
-  name: {{ include "slack-operator.fullname" . }}--validating-webhook-configuration
+  name: {{ include "slack-operator.fullname" . }}-validating-webhook-configuration
 webhooks:
   - clientConfig:
       caBundle: Cg==

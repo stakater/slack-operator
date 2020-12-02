@@ -1,4 +1,12 @@
-{{- if .Values.webhook.enabled -}}
+{{- if not (.Capabilities.APIVersions.Has "slack.stakater.com/v1alpha1") -}}
+    {{- fail "Required CRDs are missing, slack-operator-crds chart is a pre-requisite of this chart" }}
+{{ end }}
+
+{{- if .Values.webhook.enabled }}
+
+{{- if not (.Capabilities.APIVersions.Has "cert-manager.io/v1alpha2") -}}
+    {{- fail "cert-manager is not installed" }}
+{{ end }}
 ---
 apiVersion: cert-manager.io/v1alpha2
 kind: Issuer
@@ -20,5 +28,5 @@ spec:
   issuerRef:
     kind: Issuer
     name: {{ include "slack-operator.fullname" . }}-selfsigned-issuer
-  secretName:  {{ include "slack-operator.tlsSecretName" . }}
+  secretName:  webhook-server-cert
 {{- end -}}
