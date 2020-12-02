@@ -155,7 +155,7 @@ jobs:
           charts_dir: charts
           charts_url: https://stakater.github.io/stakater-charts
           owner: stakater
-          linting: false
+          linting: off
           commit_username: stakater-user
           commit_email: stakater@gmail.com
 
