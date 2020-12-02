@@ -140,15 +140,9 @@ jobs:
 
       # Update chart tag to the latest semver tag
       - name: Update Chart Version
-        run: |
-          sed -i "s/^version:.*$/version:  ${{ steps.generate_operator_tag.outputs.new_tag }}/" charts/slack-operator/Chart.yaml
-          sed -i "s/^appVersion:.*$/appVersion:  ${{ steps.generate_operator_tag.outputs.new_tag }}/" charts/slack-operator/Chart.yaml
-          sed -i "s/tag:.*$/tag:  v${{ steps.generate_operator_tag.outputs.new_tag }}/" charts/slack-operator/values.yaml
-
-      # Update CRDs for helm chart
-      - name: Update CRDs for Chart
-        run: |
-          make generate-helm-chart-manifests
+        env:
+          VERSION: ${{ steps.generate_operator_tag.outputs.new_tag }}
+        run: make bump-chart
 
       # Commit back changes
       - name: Commit files

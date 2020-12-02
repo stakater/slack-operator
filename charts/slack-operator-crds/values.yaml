@@ -1,0 +1,9 @@
+# Full name for operator
+operatorFullName: slack-operator
+
+# Scope for CRDs, cane be Namespaced or Cluster
+scope: Namespaced
+
+# Webhook Configuration
+webhook:
+  enabled: true
