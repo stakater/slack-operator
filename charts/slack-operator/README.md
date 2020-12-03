@@ -12,11 +12,8 @@ $ kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/rel
 
 ## Installing the chart
 
-Helm doesn't support templatization and upgrade or deletion for CRDs. We mantain them in a separate chart which needs to be installed before you install the operator.
-
 ```sh
 helm repo add stakater https://stakater.github.io/stakater-charts/
 helm repo update
-helm install stakater/slack-operator-crds --namespace slack-operator
 helm install stakater/slack-operator --namespace slack-operator
 ```
