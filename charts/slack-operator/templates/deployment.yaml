@@ -1,7 +1,3 @@
-{{- if not (.Capabilities.APIVersions.Has "slack.stakater.com/v1alpha1") -}}
-    {{- fail "Required CRDs are missing, slack-operator-crds chart is a pre-requisite of this chart" }}
-{{ end }}
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
