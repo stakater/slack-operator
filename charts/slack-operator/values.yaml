@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: stakater/slack-operator
-  tag:  v0.0.15
+  tag:  v0.0.16
   pullPolicy: IfNotPresent
 imagePullSecrets: []
 
