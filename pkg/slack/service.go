@@ -24,6 +24,8 @@ type Service interface {
 	GetChannelCRFromChannel(*slack.Channel) *slackv1alpha1.Channel
 	IsChannelUpdated(*slackv1alpha1.Channel) (bool, error)
 	IsValidChannel(*slackv1alpha1.Channel) error
+	GetChannelIfArchived(string) (*slack.Channel, error)
+	UnArchiveChannel(*slack.Channel) error
 }
 
 // SlackService structure
@@ -328,5 +330,46 @@ func (s *SlackService) IsValidChannel(channel *slackv1alpha1.Channel) error {
 		return fmt.Errorf("Users can not be empty")
 	}
 
+	return nil
+}
+
+func (s *SlackService) GetChannelIfArchived(channelName string) (*slack.Channel, error) {
+	var cursor string
+
+	for {
+		channels, nextCursor, err := s.api.GetConversations(&slack.GetConversationsParameters{
+			Types: []string{
+				"public_channel",
+				"private_channel",
+			},
+			Cursor:          cursor,
+			Limit:           1000,
+			ExcludeArchived: "false",
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		for _, channel := range channels {
+			if channel.Name == channelName && channel.IsArchived == true {
+				return &channel, nil
+			}
+		}
+
+		if nextCursor == "" {
+			break
+		} else {
+			cursor = nextCursor
+		}
+	}
+
+	return nil, nil
+}
+
+func (s *SlackService) UnArchiveChannel(channel *slack.Channel) error {
+	err := s.api.UnarchiveChannel(channel.ID)
+	if err != nil {
+		return err
+	}
 	return nil
 }
