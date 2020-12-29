@@ -102,7 +102,7 @@ func (r *ChannelReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 		channelID, err := r.SlackService.CreateChannel(name, isPrivate)
 		if err != nil {
-			if err.Error() == "name_taken" && os.Getenv("ENABLE_UNARCHIVING") == "true" {
+			if err.Error() == "name_taken" && os.Getenv("ENABLE_UNARCHIVING_CHANNEL") == "true" {
 				// Check if the channel is archived and get that channel if archived
 				archivedChannel, err := r.SlackService.GetChannelIfArchived(name)
 				if err != nil {
