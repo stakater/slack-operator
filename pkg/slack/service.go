@@ -10,6 +10,10 @@ import (
 	slackv1alpha1 "github.com/stakater/slack-operator/api/v1alpha1"
 )
 
+const (
+	ChannelAlreadyExistsError string = "A channel with the same name already exists"
+)
+
 // Service interface
 type Service interface {
 	CreateChannel(string, bool) (*string, error)
@@ -355,7 +359,7 @@ func (s *SlackService) GetChannelIfArchived(channelName string) (*slack.Channel,
 				if channel.IsArchived {
 					return &channel, nil
 				} else {
-					return nil, fmt.Errorf("A channel with the same name already exists")
+					return nil, fmt.Errorf(ChannelAlreadyExistsError)
 				}
 			}
 		}
@@ -366,7 +370,7 @@ func (s *SlackService) GetChannelIfArchived(channelName string) (*slack.Channel,
 		cursor = nextCursor
 	}
 
-	return nil, fmt.Errorf("A channel with the same name already exists")
+	return nil, fmt.Errorf(ChannelAlreadyExistsError)
 }
 
 // UnArchiveChannel unarchives the channel

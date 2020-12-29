@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"os"
 
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -101,7 +102,7 @@ func (r *ChannelReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 		channelID, err := r.SlackService.CreateChannel(name, isPrivate)
 		if err != nil {
-			if err.Error() == "name_taken" {
+			if err.Error() == "name_taken" && os.Getenv("ENABLE_UNARCHIVING") == "true" {
 				// Check if the channel is archived and get that channel if archived
 				archivedChannel, err := r.SlackService.GetChannelIfArchived(name)
 				if err != nil {
