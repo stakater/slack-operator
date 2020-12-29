@@ -99,20 +99,21 @@ func (r *ChannelReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 		log.Info("Creating new channel", "name", name)
 
-		var channelID *string
-		channelID, err = r.SlackService.CreateChannel(name, isPrivate)
+		channelID, err := r.SlackService.CreateChannel(name, isPrivate)
 		if err != nil {
 			if err.Error() == "name_taken" {
-				// Get a channel if it is archived
+				// Check if the channel is archived and get that channel if archived
 				archivedChannel, err := r.SlackService.GetChannelIfArchived(name)
-				if err != nil || archivedChannel == nil {
-					reconcilerUtil.ManageError(r.Client, channel, err, false)
+				if err != nil {
+					return reconcilerUtil.ManageError(r.Client, channel, err, false)
 				}
+
+				log.Info("Unarchiving the channel", "name", name)
 
 				// Unarchive the channel
 				err = r.SlackService.UnArchiveChannel(archivedChannel)
 				if err != nil {
-					reconcilerUtil.ManageError(r.Client, channel, err, false)
+					return reconcilerUtil.ManageError(r.Client, channel, err, false)
 				}
 
 				channelID = &archivedChannel.ID

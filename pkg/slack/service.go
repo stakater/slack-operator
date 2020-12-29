@@ -61,7 +61,6 @@ func (s *SlackService) CreateChannel(name string, isPrivate bool) (*string, erro
 
 	channel, err := s.api.CreateConversation(name, isPrivate)
 	if err != nil {
-		s.log.Error(err, "Error Creating channel", "name", name)
 		return nil, err
 	}
 
@@ -333,17 +332,18 @@ func (s *SlackService) IsValidChannel(channel *slackv1alpha1.Channel) error {
 	return nil
 }
 
+// GetChannelIfArchived search for the channel and returns a channel if it is archived
 func (s *SlackService) GetChannelIfArchived(channelName string) (*slack.Channel, error) {
 	var cursor string
 
 	for {
 		channels, nextCursor, err := s.api.GetConversations(&slack.GetConversationsParameters{
 			Types: []string{
-				"public_channel",
 				"private_channel",
+				"public_channel",
 			},
 			Cursor:          cursor,
-			Limit:           1000,
+			Limit:           200,
 			ExcludeArchived: "false",
 		})
 		if err != nil {
@@ -351,23 +351,27 @@ func (s *SlackService) GetChannelIfArchived(channelName string) (*slack.Channel,
 		}
 
 		for _, channel := range channels {
-			if channel.Name == channelName && channel.IsArchived == true {
-				return &channel, nil
+			if channel.Name == channelName {
+				if channel.IsArchived {
+					return &channel, nil
+				} else {
+					return nil, fmt.Errorf("A channel with the same name already exists")
+				}
 			}
 		}
 
 		if nextCursor == "" {
 			break
-		} else {
-			cursor = nextCursor
 		}
+		cursor = nextCursor
 	}
 
-	return nil, nil
+	return nil, fmt.Errorf("A channel with the same name already exists")
 }
 
+// UnArchiveChannel unarchives the channel
 func (s *SlackService) UnArchiveChannel(channel *slack.Channel) error {
-	err := s.api.UnarchiveChannel(channel.ID)
+	err := s.api.UnArchiveConversation(channel.ID)
 	if err != nil {
 		return err
 	}

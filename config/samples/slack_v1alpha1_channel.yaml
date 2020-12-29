@@ -1,12 +1,11 @@
 apiVersion: slack.stakater.com/v1alpha1
 kind: Channel
 metadata:
-  name: slack-test-channel-1
-  namespace: test
+  name: building-channel
 spec:
-  name: slack-test-channel-1
+  name: building-channel
   private: true
   topic: "Buildings"
   description: "Why is it called a 'building' if it's already built?"
   users:
-    - rehan@stakater.com
+    - hazim@stakater.com
