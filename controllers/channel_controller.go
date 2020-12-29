@@ -102,7 +102,7 @@ func (r *ChannelReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 		channelID, err := r.SlackService.CreateChannel(name, isPrivate)
 		if err != nil {
-			if err.Error() == "name_taken" && os.Getenv("ENABLE_UNARCHIVING_CHANNEL") == "true" {
+			if err.Error() == "name_taken" && isUnarchivingChannelEnabled() {
 				// Check if the channel is archived and get that channel if archived
 				archivedChannel, err := r.SlackService.GetChannelIfArchived(name)
 				if err != nil {
@@ -232,4 +232,13 @@ func (r *ChannelReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&slackv1alpha1.Channel{}).
 		Complete(r)
+}
+
+// isUnarchivingChannelEnabled check if unarchiving a channel is enabled or not
+func isUnarchivingChannelEnabled() bool {
+	if os.Getenv("ENABLE_UNARCHIVING_CHANNEL") == "true" {
+		return true
+	} else {
+		return false
+	}
 }
