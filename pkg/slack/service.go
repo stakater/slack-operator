@@ -10,6 +10,10 @@ import (
 	slackv1alpha1 "github.com/stakater/slack-operator/api/v1alpha1"
 )
 
+const (
+	ChannelAlreadyExistsError string = "A channel with the same name already exists"
+)
+
 // Service interface
 type Service interface {
 	CreateChannel(string, bool) (*string, error)
@@ -24,6 +28,8 @@ type Service interface {
 	GetChannelCRFromChannel(*slack.Channel) *slackv1alpha1.Channel
 	IsChannelUpdated(*slackv1alpha1.Channel) (bool, error)
 	IsValidChannel(*slackv1alpha1.Channel) error
+	GetChannelIfArchived(string) (*slack.Channel, error)
+	UnArchiveChannel(*slack.Channel) error
 }
 
 // SlackService structure
@@ -59,7 +65,6 @@ func (s *SlackService) CreateChannel(name string, isPrivate bool) (*string, erro
 
 	channel, err := s.api.CreateConversation(name, isPrivate)
 	if err != nil {
-		s.log.Error(err, "Error Creating channel", "name", name)
 		return nil, err
 	}
 
@@ -328,5 +333,51 @@ func (s *SlackService) IsValidChannel(channel *slackv1alpha1.Channel) error {
 		return fmt.Errorf("Users can not be empty")
 	}
 
+	return nil
+}
+
+// GetChannelIfArchived search for the channel and returns a channel if it is archived
+func (s *SlackService) GetChannelIfArchived(channelName string) (*slack.Channel, error) {
+	var cursor string
+
+	for {
+		channels, nextCursor, err := s.api.GetConversations(&slack.GetConversationsParameters{
+			Types: []string{
+				"private_channel",
+				"public_channel",
+			},
+			Cursor:          cursor,
+			Limit:           200,
+			ExcludeArchived: "false",
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		for _, channel := range channels {
+			if channel.Name == channelName {
+				if channel.IsArchived {
+					return &channel, nil
+				} else {
+					return nil, fmt.Errorf(ChannelAlreadyExistsError)
+				}
+			}
+		}
+
+		if nextCursor == "" {
+			break
+		}
+		cursor = nextCursor
+	}
+
+	return nil, fmt.Errorf(ChannelAlreadyExistsError)
+}
+
+// UnArchiveChannel unarchives the channel
+func (s *SlackService) UnArchiveChannel(channel *slack.Channel) error {
+	err := s.api.UnArchiveConversation(channel.ID)
+	if err != nil {
+		return err
+	}
 	return nil
 }
