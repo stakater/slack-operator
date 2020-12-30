@@ -51,6 +51,8 @@ spec:
           value: "{{ default "slack-secret" .Values.configSecretName }}"
         - name: ENABLE_WEBHOOKS
           value: "{{ default true .Values.webhook.enabled }}"
+        - name: ENABLE_UNARCHIVING_CHANNEL
+          value: "{{ default false .Values.enableUnarchivingChannel }}"
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         name: manager
