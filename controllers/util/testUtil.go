@@ -2,11 +2,13 @@ package util
 
 import (
 	"context"
+	"fmt"
 	"math/rand"
 	"time"
 
-	ginko "github.com/onsi/ginkgo"
+	ginkgo "github.com/onsi/ginkgo"
 	slackv1alpha1 "github.com/stakater/slack-operator/api/v1alpha1"
+	mockdata "github.com/stakater/slack-operator/pkg/slack/mock"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -35,14 +37,14 @@ func (t *TestUtil) CreateChannel(name string, isPrivate bool, topic string, desc
 	err := t.k8sClient.Create(t.ctx, channelObject)
 
 	if err != nil {
-		ginko.Fail(err.Error())
+		ginkgo.Fail(err.Error())
 	}
 
 	req := reconcile.Request{NamespacedName: types.NamespacedName{Name: name, Namespace: namespace}}
 
 	_, err = t.r.Reconcile(req)
 	if err != nil {
-		ginko.Fail(err.Error())
+		ginkgo.Fail(err.Error())
 	}
 
 	return channelObject
@@ -54,7 +56,7 @@ func (t *TestUtil) GetChannel(name string, namespace string) *slackv1alpha1.Chan
 	err := t.k8sClient.Get(t.ctx, types.NamespacedName{Name: name, Namespace: namespace}, channelObject)
 
 	if err != nil {
-		ginko.Fail(err.Error())
+		ginkgo.Fail(err.Error())
 	}
 
 	return channelObject
@@ -66,20 +68,20 @@ func (t *TestUtil) DeleteChannel(name string, namespace string) {
 	err := t.k8sClient.Get(t.ctx, types.NamespacedName{Name: name, Namespace: namespace}, channelObject)
 
 	if err != nil {
-		ginko.Fail(err.Error())
+		ginkgo.Fail(err.Error())
 	}
 
 	err = t.k8sClient.Delete(t.ctx, channelObject)
 
 	if err != nil {
-		ginko.Fail(err.Error())
+		ginkgo.Fail(err.Error())
 	}
 
 	req := reconcile.Request{NamespacedName: types.NamespacedName{Name: name, Namespace: namespace}}
 
 	_, err = t.r.Reconcile(req)
 	if err != nil {
-		ginko.Fail(err.Error())
+		ginkgo.Fail(err.Error())
 	}
 }
 
@@ -90,6 +92,38 @@ func (t *TestUtil) TryDeleteChannel(name string, namespace string) {
 	_ = t.k8sClient.Delete(t.ctx, channelObject)
 	req := reconcile.Request{NamespacedName: types.NamespacedName{Name: name, Namespace: namespace}}
 	_, _ = t.r.Reconcile(req)
+}
+
+// DeleteAllSlackChannels delete all the slack channels in the namespace
+func (t *TestUtil) DeleteAllSlackChannels(namespace string) {
+	// Specify namespace in list Options
+	listOptions := &client.ListOptions{Namespace: namespace}
+
+	// List channels in a specified namespace
+	channelList := &slackv1alpha1.ChannelList{}
+	err := t.k8sClient.List(context.TODO(), channelList, listOptions)
+	if err != nil {
+		ginkgo.Fail(err.Error())
+	}
+
+	for _, channel := range channelList.Items {
+		channel.Finalizers = []string{}
+
+		err := t.k8sClient.Update(t.ctx, &channel)
+		if err != nil {
+			if err.Error() == fmt.Sprintf(mockdata.ChannelObjectModifiedError, channel.Name) {
+				currentChannel := t.GetChannel(channel.Name, namespace)
+				currentChannel.Finalizers = []string{}
+				if err != nil {
+					ginkgo.Fail(err.Error())
+				}
+			} else {
+				ginkgo.Fail(err.Error())
+			}
+		}
+
+		t.TryDeleteChannel(channel.Name, namespace)
+	}
 }
 
 // CreateSlackChannelObject creates a slack channel custom resource object

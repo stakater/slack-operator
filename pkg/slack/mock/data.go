@@ -7,6 +7,8 @@ import (
 	"github.com/slack-go/slack"
 )
 
+var ChannelObjectModifiedError = "Operation cannot be fulfilled on channels.slack.stakater.com \"%s\": the object has been modified; please apply your changes to the latest version and try again"
+
 var ConversationName = "bat-channel"
 var NameTakenConversationName = "name-taken"
 var PublicConversationID = "C0EAQDV4Z"
