@@ -8,10 +8,10 @@ sources:
   - https://github.com/stakater/slack-operator
 
 # Helm chart Version
-version:  0.0.18
+version:  0.0.19
 
 # Application version to be deployed
-appVersion:  0.0.18
+appVersion:  0.0.19
 
 keywords:
   - stakater
