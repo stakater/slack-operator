@@ -33,7 +33,7 @@ type ChannelSpec struct {
 	// List of user IDs of the users to invite
 	// +kubebuilder:validation:MinItems=1
 	// +required
-	Users []string `json:"users,omitempty"`
+	Users []string `json:"users"`
 
 	// Description of the channel
 	// +optional
