@@ -30,6 +30,7 @@ type Service interface {
 	IsValidChannel(*slackv1alpha1.Channel) error
 	GetChannelIfArchived(string) (*slack.Channel, error)
 	UnArchiveChannel(*slack.Channel) error
+	IsChannelArchived(channelName string) (bool, error)
 }
 
 // SlackService structure
@@ -371,6 +372,11 @@ func (s *SlackService) GetChannelIfArchived(channelName string) (*slack.Channel,
 	}
 
 	return nil, fmt.Errorf(ChannelAlreadyExistsError)
+}
+
+func (s *SlackService) IsChannelArchived(channelName string) (bool, error) {
+	archived, err := s.GetChannelIfArchived(channelName);
+	return archived != nil, err
 }
 
 // UnArchiveChannel unarchives the channel
