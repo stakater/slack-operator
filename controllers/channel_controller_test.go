@@ -32,16 +32,6 @@ var _ = Describe("ChannelController", func() {
 				Expect(len(channel.Status.Conditions)).To(Equal(1))
 				Expect(channel.Status.Conditions[0].Reason).To(Equal("Successful"))
 			})
-
-			It("should set error condition if channel with same name already exists", func() {
-				_ = util.CreateChannel(mock.NameTakenConversationName, false, "", "", []string{mock.ExistingUserEmail}, ns)
-				channel := util.GetChannel(mock.NameTakenConversationName, ns)
-
-				Expect(len(channel.Status.Conditions)).To(Equal(1))
-				Expect(channel.Status.Conditions[0].Reason).To(Equal("Failed"))
-				Expect(channel.Status.Conditions[0].Message).To(Equal("name_taken"))
-				util.TryDeleteChannel(mock.NameTakenConversationName, ns)
-			})
 		})
 
 		Context("With private field true", func() {
@@ -154,13 +144,13 @@ var _ = Describe("ChannelController", func() {
 
 		Context("When Channel on slack was not created", func() {
 			It("should remove resource ", func() {
-				_ = util.CreateChannel(mock.NameTakenConversationName, false, "", "", []string{mock.ExistingUserEmail}, ns)
-				channel := util.GetChannel(mock.NameTakenConversationName, ns)
+				_ = util.CreateChannel(mock.InvalidChannelName, false, "", "", []string{mock.ExistingUserEmail}, ns)
+				channel := util.GetChannel(mock.InvalidChannelName, ns)
 
 				Expect(len(channel.Status.Conditions)).To(Equal(1))
 				Expect(channel.Status.Conditions[0].Reason).To(Equal("Failed"))
 
-				util.DeleteChannel(mock.NameTakenConversationName, ns)
+				util.DeleteChannel(mock.InvalidChannelName, ns)
 
 				channelObject := &slackv1alpha1.Channel{}
 				err := k8sClient.Get(ctx, types.NamespacedName{Name: channelName, Namespace: ns}, channelObject)
