@@ -102,16 +102,14 @@ func (r *ChannelReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 		channelID, err := r.SlackService.CreateChannel(name, isPrivate)
 		if err != nil {
-			if err.Error() == "name_taken"{
+			if err.Error() == "name_taken" {
 				// Check if the channel already exists and then just reconstruct the status accordingly
-				existingChannel, err := r.SlackService.GetChannel(name)
+				existingChannel, err := r.SlackService.GetChannelByName(name)
 				if err != nil {
 					return reconcilerUtil.ManageError(r.Client, channel, err, false)
 				}
 
-				// Reconstruct status for existing channel
-				// If channel is archived, unarchive and re-sync it
-				if archived, _ := r.SlackService.IsChannelArchived(name); archived {
+				if existingChannel != nil && existingChannel.GroupConversation.IsArchived {
 					err = r.SlackService.UnArchiveChannel(existingChannel)
 					if err != nil {
 						return reconcilerUtil.ManageError(r.Client, channel, err, false)

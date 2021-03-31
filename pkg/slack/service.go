@@ -28,9 +28,8 @@ type Service interface {
 	GetChannelCRFromChannel(*slack.Channel) *slackv1alpha1.Channel
 	IsChannelUpdated(*slackv1alpha1.Channel) (bool, error)
 	IsValidChannel(*slackv1alpha1.Channel) error
-	GetChannelIfArchived(string) (*slack.Channel, error)
+	GetChannelByName(string) (*slack.Channel, error)
 	UnArchiveChannel(*slack.Channel) error
-	IsChannelArchived(channelName string) (bool, error)
 }
 
 // SlackService structure
@@ -191,7 +190,7 @@ func (s *SlackService) InviteUsers(channelID string, userEmails []string) error 
 		log.V(1).Info("Inviting user to Slack Channel", "userID", user.ID)
 		_, err = s.api.InviteUsersToConversation(channelID, user.ID)
 
-		if err != nil {
+		if err != nil && err.Error() != "already_in_channel" {
 			log.Error(err, "Error Inviting user to channel", "userID", user.ID)
 			return err
 		}
@@ -337,8 +336,8 @@ func (s *SlackService) IsValidChannel(channel *slackv1alpha1.Channel) error {
 	return nil
 }
 
-// GetChannelIfArchived search for the channel and returns a channel if it is archived
-func (s *SlackService) GetChannelIfArchived(channelName string) (*slack.Channel, error) {
+// GetChannelByName search for the channel on slack by name
+func (s *SlackService) GetChannelByName(name string) (*slack.Channel, error) {
 	var cursor string
 
 	for {
@@ -356,12 +355,8 @@ func (s *SlackService) GetChannelIfArchived(channelName string) (*slack.Channel,
 		}
 
 		for _, channel := range channels {
-			if channel.Name == channelName {
-				if channel.IsArchived {
-					return &channel, nil
-				} else {
-					return nil, fmt.Errorf(ChannelAlreadyExistsError)
-				}
+			if channel.Name == name {
+				return &channel, nil
 			}
 		}
 
@@ -372,11 +367,6 @@ func (s *SlackService) GetChannelIfArchived(channelName string) (*slack.Channel,
 	}
 
 	return nil, fmt.Errorf(ChannelAlreadyExistsError)
-}
-
-func (s *SlackService) IsChannelArchived(channelName string) (bool, error) {
-	archived, err := s.GetChannelIfArchived(channelName);
-	return archived != nil, err
 }
 
 // UnArchiveChannel unarchives the channel
