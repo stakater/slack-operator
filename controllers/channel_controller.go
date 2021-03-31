@@ -18,7 +18,6 @@ package controllers
 
 import (
 	"context"
-	"os"
 
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -67,8 +66,8 @@ func (r *ChannelReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return reconcilerUtil.RequeueWithError(err)
 	}
 
-	isChannelMarkedToBeDeleted := channel.GetDeletionTimestamp() != nil
-	if isChannelMarkedToBeDeleted {
+	// Channel is marked for deletion
+	if channel.GetDeletionTimestamp() != nil {
 		log.Info("Deletion timestamp found for channel " + req.Name)
 		if finalizerUtil.HasFinalizer(channel, channelFinalizer) {
 			return r.finalizeChannel(req, channel)
@@ -89,6 +88,7 @@ func (r *ChannelReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		}
 	}
 
+	// Check for validity of slack channel custom resource
 	err = r.SlackService.IsValidChannel(channel)
 	if err != nil {
 		return reconcilerUtil.ManageError(r.Client, channel, err, true)
@@ -102,22 +102,20 @@ func (r *ChannelReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 		channelID, err := r.SlackService.CreateChannel(name, isPrivate)
 		if err != nil {
-			if err.Error() == "name_taken" && isUnarchivingChannelEnabled() {
-				// Check if the channel is archived and get that channel if archived
-				archivedChannel, err := r.SlackService.GetChannelIfArchived(name)
+			if err.Error() == "name_taken" {
+				// Check if the channel already exists and then just reconstruct the status accordingly
+				existingChannel, err := r.SlackService.GetChannelByName(name)
 				if err != nil {
 					return reconcilerUtil.ManageError(r.Client, channel, err, false)
 				}
 
-				log.Info("Unarchiving the channel", "name", name)
-
-				// Unarchive the channel
-				err = r.SlackService.UnArchiveChannel(archivedChannel)
-				if err != nil {
-					return reconcilerUtil.ManageError(r.Client, channel, err, false)
+				if existingChannel != nil && existingChannel.GroupConversation.IsArchived {
+					err = r.SlackService.UnArchiveChannel(existingChannel)
+					if err != nil {
+						return reconcilerUtil.ManageError(r.Client, channel, err, false)
+					}
 				}
-
-				channelID = &archivedChannel.ID
+				channelID = &existingChannel.ID
 			} else {
 				return reconcilerUtil.ManageError(r.Client, channel, err, false)
 			}
@@ -232,13 +230,4 @@ func (r *ChannelReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&slackv1alpha1.Channel{}).
 		Complete(r)
-}
-
-// isUnarchivingChannelEnabled check if unarchiving a channel is enabled or not
-func isUnarchivingChannelEnabled() bool {
-	if os.Getenv("ENABLE_UNARCHIVING_CHANNEL") == "true" {
-		return true
-	} else {
-		return false
-	}
 }

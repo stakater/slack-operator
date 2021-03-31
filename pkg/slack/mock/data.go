@@ -11,6 +11,7 @@ var ChannelObjectModifiedError = "Operation cannot be fulfilled on channels.slac
 
 var ConversationName = "bat-channel"
 var NameTakenConversationName = "name-taken"
+var InvalidChannelName = "#$%^^^&)$#(!($&!#KHLREJOIWQRHQOIWRHQWRIOWQIHEIUWQ BE&#84y2180943u20932"
 var PublicConversationID = "C0EAQDV4Z"
 var PrivateConversationID = "Y7HGFWC6Q"
 var NotFoundConversationID = "-"
