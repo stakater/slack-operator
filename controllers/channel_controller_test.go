@@ -141,22 +141,5 @@ var _ = Describe("ChannelController", func() {
 				Expect(err).To(HaveOccurred())
 			})
 		})
-
-		Context("When Channel on slack was not created", func() {
-			It("should remove resource ", func() {
-				_ = util.CreateChannel(mock.InvalidChannelName, false, "", "", []string{mock.ExistingUserEmail}, ns)
-				channel := util.GetChannel(mock.InvalidChannelName, ns)
-
-				Expect(len(channel.Status.Conditions)).To(Equal(1))
-				Expect(channel.Status.Conditions[0].Reason).To(Equal("Failed"))
-
-				util.DeleteChannel(mock.InvalidChannelName, ns)
-
-				channelObject := &slackv1alpha1.Channel{}
-				err := k8sClient.Get(ctx, types.NamespacedName{Name: channelName, Namespace: ns}, channelObject)
-
-				Expect(err).To(HaveOccurred())
-			})
-		})
 	})
 })
