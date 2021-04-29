@@ -9,13 +9,17 @@ metadata:
 spec:
   conversion:
     strategy: Webhook
-    webhookClientConfig:
-      caBundle: Cg==
-      service:
-        name: slack-operator-webhook-service
-        namespace: slack-operator-system
-        path: /convert
-        port: 443
+    webhook:
+      clientConfig:
+        # this is "\n" used as a placeholder, otherwise it will be rejected by the apiserver for being blank,
+        # but we're going to set it later using the cert-manager (or potentially a patch if not using cert-manager)
+        caBundle: Cg==
+        service:
+          namespace: system
+          name: webhook-service
+          path: /convert
+          port: 443
+      conversionReviewVersions: ["v1","v1beta1"]
   group: slack.stakater.com
   names:
     kind: Channel

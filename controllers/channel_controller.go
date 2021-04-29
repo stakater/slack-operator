@@ -200,12 +200,12 @@ func (r *ChannelReconciler) updateSlackChannel(ctx context.Context, channel *sla
 }
 
 func (r *ChannelReconciler) finalizeChannel(req ctrl.Request, channel *slackv1alpha1.Channel) (ctrl.Result, error) {
-	channelID := channel.Status.ID
-	log := r.Log.WithValues("channelID", channelID)
-
 	if channel == nil {
 		return reconcilerUtil.DoNotRequeue()
 	}
+
+	channelID := channel.Status.ID
+	log := r.Log.WithValues("channelID", channelID)
 
 	err := r.SlackService.ArchiveChannel(channelID)
 
