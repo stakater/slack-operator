@@ -1,11 +1,22 @@
 domain: stakater.com
-layout: go.kubebuilder.io/v2
+layout:
+- go.kubebuilder.io/v3
+plugins:
+  manifests.sdk.operatorframework.io/v2: {}
+  scorecard.sdk.operatorframework.io/v2: {}
 projectName: slack-operator
 repo: github.com/stakater/slack-operator
 resources:
-- group: slack
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: stakater.com
+  group: slack
   kind: Channel
+  path: github.com/stakater/slack-operator/api/v1alpha1
   version: v1alpha1
-version: 3-alpha
-plugins:
-  go.operator-sdk.io/v2-alpha: {}
+  webhooks:
+    validation: true
+    webhookVersion: v1
+version: "3"

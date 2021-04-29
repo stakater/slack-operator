@@ -38,7 +38,7 @@ type APIToken struct {
 	Key        string `yaml:"key"`
 }
 
-var log = zap.Logger(true)
+var log = zap.New()
 
 func readConfig(filePath string) (*Config, error) {
 	var config Config

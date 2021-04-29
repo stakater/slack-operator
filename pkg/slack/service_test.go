@@ -8,7 +8,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 )
 
-var log = zap.Logger(true)
+var log = zap.New()
 
 func TestSlackService_CreateChannel_shouldCreatePublicChannel_whenPrivateIsFalse(t *testing.T) {
 	s := NewMockService(log)

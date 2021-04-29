@@ -41,8 +41,9 @@ func (t *TestUtil) CreateChannel(name string, isPrivate bool, topic string, desc
 	}
 
 	req := reconcile.Request{NamespacedName: types.NamespacedName{Name: name, Namespace: namespace}}
+	ctx := context.Background()
 
-	_, err = t.r.Reconcile(req)
+	_, err = t.r.Reconcile(ctx, req)
 	if err != nil {
 		ginkgo.Fail(err.Error())
 	}
@@ -78,8 +79,9 @@ func (t *TestUtil) DeleteChannel(name string, namespace string) {
 	}
 
 	req := reconcile.Request{NamespacedName: types.NamespacedName{Name: name, Namespace: namespace}}
+	ctx := context.Background()
 
-	_, err = t.r.Reconcile(req)
+	_, err = t.r.Reconcile(ctx, req)
 	if err != nil {
 		ginkgo.Fail(err.Error())
 	}
@@ -91,7 +93,9 @@ func (t *TestUtil) TryDeleteChannel(name string, namespace string) {
 	_ = t.k8sClient.Get(t.ctx, types.NamespacedName{Name: name, Namespace: namespace}, channelObject)
 	_ = t.k8sClient.Delete(t.ctx, channelObject)
 	req := reconcile.Request{NamespacedName: types.NamespacedName{Name: name, Namespace: namespace}}
-	_, _ = t.r.Reconcile(req)
+	ctx := context.Background()
+
+	_, _ = t.r.Reconcile(ctx, req)
 }
 
 // DeleteAllSlackChannels delete all the slack channels in the namespace

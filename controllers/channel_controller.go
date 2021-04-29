@@ -48,8 +48,7 @@ type ChannelReconciler struct {
 // +kubebuilder:rbac:groups="",resources=secrets,verbs=get;list
 
 // Reconcile loop for the Channel resource
-func (r *ChannelReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	ctx := context.Background()
+func (r *ChannelReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("channel", req.NamespacedName)
 
 	channel := &slackv1alpha1.Channel{}
