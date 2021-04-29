@@ -17,6 +17,7 @@ resources:
   path: github.com/stakater/slack-operator/api/v1alpha1
   version: v1alpha1
   webhooks:
+    defaulting: true
     validation: true
     webhookVersion: v1
 version: "3"
