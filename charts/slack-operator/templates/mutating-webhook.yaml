@@ -8,13 +8,16 @@ metadata:
   creationTimestamp: null
   name: {{ include "slack-operator.fullname" . }}-mutating-webhook-configuration
 webhooks:
-- clientConfig:
-    caBundle: Cg==
+- - admissionReviewVersions:
+  - v1
+  - v1beta1
+  clientConfig:
     service:
       name: {{ include "slack-operator.fullname" . }}-webhook-service
       namespace: {{ .Release.Namespace }}
       path: /mutate-slack-stakater-com-v1alpha1-channel
   failurePolicy: Fail
+  sideEffects: None
   name: mchannel.kb.io
   rules:
   - apiGroups:
