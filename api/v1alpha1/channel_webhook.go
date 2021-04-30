@@ -59,6 +59,9 @@ func (r *Channel) ValidateCreate() error {
 	if len(r.Spec.Users) < 1 {
 		return fmt.Errorf("Users can not be empty")
 	}
+	if r.Spec.Topic == "test" {
+		return fmt.Errorf("Users can not be empty")
+	}
 
 	return nil
 }
