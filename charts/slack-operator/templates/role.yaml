@@ -4,7 +4,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: {{ include "slack-operator.fullname" . }}-leader-election-role
+  name: {{ include "slack-operator.fullname" . }}-leader-elect
   namespace: {{ .Release.Namespace }}
 rules:
 - apiGroups:

@@ -61,6 +61,9 @@ func main() {
 		Development: true,
 	}
 	opts.BindFlags(flag.CommandLine)
+	flag.Parse()
+
+	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
 	watchNamespace, err := getWatchNamespace()
 	if err != nil {
@@ -90,10 +93,6 @@ func main() {
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
 	}
-
-	flag.Parse()
-
-	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
 	slackAPIToken := config.ReadSlackTokenSecret(mgr.GetAPIReader())
 
