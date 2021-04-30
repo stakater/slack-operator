@@ -202,7 +202,7 @@ spec:
   version: 0.0.23
   webhookdefinitions:
   - admissionReviewVersions:
-    - v1beta1
+    - v1
     containerPort: 443
     deploymentName: slack-operator-controller-manager
     failurePolicy: Fail
@@ -222,7 +222,7 @@ spec:
     type: ValidatingAdmissionWebhook
     webhookPath: /validate-slack-stakater-com-v1alpha1-channel
   - admissionReviewVersions:
-    - v1beta1
+    - v1
     containerPort: 443
     deploymentName: slack-operator-controller-manager
     failurePolicy: Fail
