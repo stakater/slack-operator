@@ -43,4 +43,5 @@ spec:
                 fieldPath: metadata.namespace
           - name: CONFIG_SECRET_NAME
             value: slack-secret
+      serviceAccountName: controller-manager
       terminationGracePeriodSeconds: 10
