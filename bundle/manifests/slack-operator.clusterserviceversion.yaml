@@ -22,7 +22,7 @@ metadata:
         }
       ]
     capabilities: Basic Install
-    operators.operatorframework.io/builder: operator-sdk-v1.5.0
+    operators.operatorframework.io/builder: operator-sdk-v1.6.1
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v3
   name: slack-operator.v0.0.23
   namespace: placeholder
