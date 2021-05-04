@@ -6,7 +6,7 @@ metadata:
     capabilities: Basic Install
     operators.operatorframework.io/builder: operator-sdk-v1.7.1
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v3
-  name: slack-operator.vX.Y.Z
+  name: slack-operator.v0.0.0
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
