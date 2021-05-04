@@ -1,6 +1,6 @@
 {{- if .Values.webhook.enabled -}}
 ---
-apiVersion: admissionregistration.k8s.io/v1beta1
+apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
   annotations:
@@ -8,22 +8,25 @@ metadata:
   creationTimestamp: null
   name: {{ include "slack-operator.fullname" . }}-mutating-webhook-configuration
 webhooks:
-- clientConfig:
-    caBundle: Cg==
-    service:
-      name: {{ include "slack-operator.fullname" . }}-webhook-service
-      namespace: {{ .Release.Namespace }}
-      path: /mutate-slack-stakater-com-v1alpha1-channel
-  failurePolicy: Fail
-  name: mchannel.kb.io
-  rules:
-  - apiGroups:
-    - slack.stakater.com
-    apiVersions:
-    - v1alpha1
-    operations:
-    - CREATE
-    - UPDATE
-    resources:
-    - channels
+  - admissionReviewVersions:
+    - v1
+    - v1beta1
+    clientConfig:
+      service:
+        name: {{ include "slack-operator.fullname" . }}-webhook-service
+        namespace: {{ .Release.Namespace }}
+        path: /mutate-slack-stakater-com-v1alpha1-channel
+    failurePolicy: Fail
+    sideEffects: None
+    name: mchannel.kb.io
+    rules:
+    - apiGroups:
+      - slack.stakater.com
+      apiVersions:
+      - v1alpha1
+      operations:
+      - CREATE
+      - UPDATE
+      resources:
+      - channels
 {{- end -}}

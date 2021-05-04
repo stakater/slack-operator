@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"context"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	slackv1alpha1 "github.com/stakater/slack-operator/api/v1alpha1"
@@ -108,7 +110,8 @@ var _ = Describe("ChannelController", func() {
 				}
 
 				req := reconcile.Request{NamespacedName: types.NamespacedName{Name: channelName, Namespace: ns}}
-				_, err = r.Reconcile(req)
+				ctx := context.Background()
+				_, err = r.Reconcile(ctx, req)
 				if err != nil {
 					Fail(err.Error())
 				}

@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"flag"
 	"path/filepath"
 	"testing"
 
@@ -61,7 +62,11 @@ func TestAPIs(t *testing.T) {
 }
 
 var _ = BeforeSuite(func(done Done) {
-	log = zap.New(zap.UseDevMode(true), zap.WriteTo(GinkgoWriter))
+	opts := zap.Options{
+		Development: true,
+	}
+	opts.BindFlags(flag.CommandLine)
+	log = zap.New(zap.UseFlagOptions(&opts), zap.WriteTo(GinkgoWriter))
 	logf.SetLogger(log)
 
 	By("bootstrapping test environment")
