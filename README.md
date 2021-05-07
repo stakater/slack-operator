@@ -49,7 +49,7 @@ $ oc apply -f bundle/manifests
 
 ## Local Development
 
-- [Operator-sdk v1.2.0](https://github.com/operator-framework/operator-sdk/releases/tag/v1.2.0) is required for local development.
+- [Operator-sdk v1.7.1](https://github.com/operator-framework/operator-sdk/releases/tag/v1.7.1) is required for local development.
 
 1. Create `slack-secret` secret
 2. Run `make run ENABLE_WEBHOOKS=false WATCH_NAMESPACE=default OPERATOR_NAMESPACE=default` where `WATCH_NAMESPACE` denotes the namespaces that the operator is supposed to watch and `OPERATOR_NAMESPACE` is the namespace in which it's supposed to be deployed.
