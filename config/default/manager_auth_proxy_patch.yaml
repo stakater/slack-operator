@@ -10,6 +10,7 @@ spec:
     spec:
       containers:
       - name: kube-rbac-proxy
+        # Issue: https://github.com/operator-framework/operator-sdk/issues/4813
         image: registry.redhat.io/openshift4/ose-kube-rbac-proxy:v4.7.0
         args:
         - "--secure-listen-address=0.0.0.0:8443"
