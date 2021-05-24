@@ -24,7 +24,7 @@ metadata:
     capabilities: Basic Install
     operators.operatorframework.io/builder: operator-sdk-v1.6.1+git
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v3
-  name: slack-operator.v0.0.26
+  name: slack-operator.v0.0.27
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -121,7 +121,7 @@ spec:
                       fieldPath: metadata.annotations['olm.targetNamespaces']
                 - name: CONFIG_SECRET_NAME
                   value: slack-secret
-                image: stakater/slack-operator:v0.0.26
+                image: stakater/slack-operator:v0.0.27
                 name: manager
                 ports:
                 - containerPort: 9443
@@ -211,7 +211,7 @@ spec:
   provider:
     name: stakater
     url: https://stakater.com
-  version: 0.0.26
+  version: 0.0.27
   webhookdefinitions:
   - admissionReviewVersions:
     - v1
