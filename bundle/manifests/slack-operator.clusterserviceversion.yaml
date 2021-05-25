@@ -22,9 +22,9 @@ metadata:
         }
       ]
     capabilities: Basic Install
-    operators.operatorframework.io/builder: operator-sdk-v1.6.1+git
+    operators.operatorframework.io/builder: operator-sdk-v1.7.1+git
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v3
-  name: slack-operator.v0.0.27
+  name: slack-operator.v0.0.28
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -110,6 +110,7 @@ spec:
                   name: https
                 resources: {}
               - args:
+                - --health-probe-bind-address=:8081
                 - --metrics-bind-address=127.0.0.1:8080
                 - --leader-elect
                 command:
@@ -121,12 +122,24 @@ spec:
                       fieldPath: metadata.annotations['olm.targetNamespaces']
                 - name: CONFIG_SECRET_NAME
                   value: slack-secret
-                image: stakater/slack-operator:v0.0.27
+                image: stakater/slack-operator:v0.0.28
+                livenessProbe:
+                  httpGet:
+                    path: /healthz
+                    port: 8081
+                  initialDelaySeconds: 15
+                  periodSeconds: 20
                 name: manager
                 ports:
                 - containerPort: 9443
                   name: webhook-server
                   protocol: TCP
+                readinessProbe:
+                  httpGet:
+                    path: /readyz
+                    port: 8081
+                  initialDelaySeconds: 5
+                  periodSeconds: 10
                 resources:
                   limits:
                     cpu: 100m
@@ -134,10 +147,14 @@ spec:
                   requests:
                     cpu: 100m
                     memory: 20Mi
+                securityContext:
+                  allowPrivilegeEscalation: false
                 volumeMounts:
                 - mountPath: /tmp/k8s-webhook-server/serving-certs
                   name: cert
                   readOnly: true
+              securityContext:
+                runAsNonRoot: true
               serviceAccountName: slack-operator-controller-manager
               terminationGracePeriodSeconds: 10
               volumes:
@@ -211,7 +228,7 @@ spec:
   provider:
     name: stakater
     url: https://stakater.com
-  version: 0.0.27
+  version: 0.0.28
   webhookdefinitions:
   - admissionReviewVersions:
     - v1
