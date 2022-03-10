@@ -21,7 +21,7 @@ type Service interface {
 	SetTopic(string, string) (*slack.Channel, error)
 	RenameChannel(string, string) (*slack.Channel, error)
 	ArchiveChannel(string) error
-	InviteUsers(string, []string) error
+	InviteUsers(string, []string) []error
 	RemoveUsers(string, []string) error
 	GetChannel(string) (*slack.Channel, error)
 	GetUsersInChannel(channelID string) ([]string, error)
@@ -176,15 +176,17 @@ func (s *SlackService) GetUsersInChannel(channelID string) ([]string, error) {
 }
 
 // InviteUsers invites users to the slack channel
-func (s *SlackService) InviteUsers(channelID string, userEmails []string) error {
+func (s *SlackService) InviteUsers(channelID string, userEmails []string) []error {
 	log := s.log.WithValues("channelID", channelID)
+
+	var errorlist []error
 
 	for _, email := range userEmails {
 		user, err := s.api.GetUserByEmail(email)
 
 		if err != nil {
-			log.Error(err, "Error getting user by email")
-			return err
+			errorlist = append(errorlist, fmt.Errorf(fmt.Sprintf("Error fetching user by Email %s", email)))
+			continue
 		}
 
 		log.V(1).Info("Inviting user to Slack Channel", "userID", user.ID)
@@ -192,11 +194,11 @@ func (s *SlackService) InviteUsers(channelID string, userEmails []string) error 
 
 		if err != nil && err.Error() != "already_in_channel" {
 			log.Error(err, "Error Inviting user to channel", "userID", user.ID)
-			return err
+			errorlist = append(errorlist, err)
 		}
 	}
 
-	return nil
+	return errorlist
 }
 
 // RemoveUsers remove users from the slack channel
@@ -285,8 +287,8 @@ func (s *SlackService) IsChannelUpdated(channel *slackv1alpha1.Channel) (bool, e
 	for _, email := range userEmails {
 		user, err := s.api.GetUserByEmail(email)
 		if err != nil {
-			log.Error(err, "Error fetching user by Email")
-			return false, err
+			log.Error(err, fmt.Sprintf("Error fetching user by Email %s", email))
+			continue
 		}
 
 		found := false
