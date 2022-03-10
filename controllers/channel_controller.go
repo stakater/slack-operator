@@ -185,10 +185,10 @@ func (r *ChannelReconciler) updateSlackChannel(ctx context.Context, channel *sla
 		return reconcilerUtil.ManageError(r.Client, channel, err, false)
 	}
 
-	errList := r.SlackService.InviteUsers(channelID, users)
-	if len(errList) > 0 {
+	errorlist := r.SlackService.InviteUsers(channelID, users)
+	if len(errorlist) > 0 {
 		log.Error(err, "Error inviting users to channel")
-		return pkgutil.ManageError(ctx, r.Client, channel, pkgutil.MapErrorListToError(errList))
+		return pkgutil.ManageError(ctx, r.Client, channel, pkgutil.MapErrorListToError(errorlist))
 	}
 
 	err = r.SlackService.RemoveUsers(channelID, users)
