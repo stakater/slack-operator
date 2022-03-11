@@ -288,7 +288,7 @@ func (s *SlackService) IsChannelUpdated(channel *slackv1alpha1.Channel) (bool, e
 		user, err := s.api.GetUserByEmail(email)
 		if err != nil {
 			log.Error(err, fmt.Sprintf("Error fetching user by Email %s", email))
-			continue
+			return false, err
 		}
 
 		found := false

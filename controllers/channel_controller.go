@@ -145,7 +145,7 @@ func (r *ChannelReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 
 	updated, err := r.SlackService.IsChannelUpdated(channel)
 	if err != nil {
-		return reconcilerUtil.ManageError(r.Client, channel, err, true)
+		return pkgutil.ManageError(ctx, r.Client, channel, err)
 	}
 
 	if !updated {
