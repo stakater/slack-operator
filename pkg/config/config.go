@@ -3,6 +3,7 @@ package config
 import (
 	"io/ioutil"
 	"os"
+	"time"
 
 	util "github.com/stakater/operator-utils/util"
 	secretsUtil "github.com/stakater/operator-utils/util/secrets"
@@ -13,6 +14,8 @@ import (
 )
 
 const (
+	ErrorRequeueTime = 15 * time.Minute
+
 	SlackDefaultSecretName string = "slack-secret"
 	SlackAPITokenSecretKey string = "APIToken"
 )

@@ -29,6 +29,7 @@ import (
 	reconcilerUtil "github.com/stakater/operator-utils/util/reconciler"
 	slackv1alpha1 "github.com/stakater/slack-operator/api/v1alpha1"
 	slack "github.com/stakater/slack-operator/pkg/slack"
+	pkgutil "github.com/stakater/slack-operator/pkg/util"
 )
 
 var (
@@ -184,10 +185,10 @@ func (r *ChannelReconciler) updateSlackChannel(ctx context.Context, channel *sla
 		return reconcilerUtil.ManageError(r.Client, channel, err, false)
 	}
 
-	err = r.SlackService.InviteUsers(channelID, users)
-	if err != nil {
+	errorlist := r.SlackService.InviteUsers(channelID, users)
+	if len(errorlist) > 0 {
 		log.Error(err, "Error inviting users to channel")
-		return reconcilerUtil.ManageError(r.Client, channel, err, false)
+		return pkgutil.ManageError(ctx, r.Client, channel, pkgutil.MapErrorListToError(errorlist))
 	}
 
 	err = r.SlackService.RemoveUsers(channelID, users)

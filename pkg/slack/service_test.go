@@ -1,6 +1,7 @@
 package slack
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stakater/slack-operator/pkg/slack/mock"
@@ -78,12 +79,14 @@ func TestSlackService_ArchiveChannel_shouldThrowError_whenChannelNotFound(t *tes
 
 func TestSlackService_InviteUsers_shouldSendUserInvites_whenUserExists(t *testing.T) {
 	s := NewMockService(log)
-	err := s.InviteUsers(mock.PublicConversationID, []string{mock.ExistingUserEmail})
-	assert.NoError(t, err)
+	errs := s.InviteUsers(mock.PublicConversationID, []string{mock.ExistingUserEmail})
+	assert.Equal(t, 0, len(errs))
 }
 
 func TestSlackService_InviteUsers_shouldThowError_whenUserDoesNotExists(t *testing.T) {
 	s := NewMockService(log)
-	err := s.InviteUsers(mock.PublicConversationID, []string{"spengler@ghostbusters.example.com"})
-	assert.EqualError(t, err, "users_not_found")
+	emailList := []string{"spengler@ghostbusters.example.com"}
+	errs := s.InviteUsers(mock.PublicConversationID, emailList)
+	assert.Equal(t, 1, len(errs))
+	assert.EqualError(t, errs[0], fmt.Sprintf("Error fetching user by Email %s", emailList[0]))
 }

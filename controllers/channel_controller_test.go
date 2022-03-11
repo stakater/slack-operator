@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -84,13 +85,13 @@ var _ = Describe("ChannelController", func() {
 			})
 
 			It("should set error condition when user does not exists", func() {
-
-				_ = util.CreateChannel(channelName, true, "", "", []string{"nonexistent@slack.com"}, ns)
+				emailList := []string{"nonexistent@slack.com"}
+				_ = util.CreateChannel(channelName, true, "", "", emailList, ns)
 				channel := util.GetChannel(channelName, ns)
 
 				Expect(len(channel.Status.Conditions)).To(Equal(1))
 				Expect(channel.Status.Conditions[0].Reason).To(Equal("Failed"))
-				Expect(channel.Status.Conditions[0].Message).To(Equal("users_not_found"))
+				Expect(channel.Status.Conditions[0].Message).To(Equal(fmt.Sprintf("Error fetching user by Email %s", emailList[0])))
 			})
 		})
 	})
