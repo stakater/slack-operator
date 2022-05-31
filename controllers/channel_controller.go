@@ -80,9 +80,12 @@ func (r *ChannelReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	if !finalizerUtil.HasFinalizer(channel, channelFinalizer) {
 		log.Info("Adding finalizer for channel " + req.Name)
 
+		// Base object for patch, which patches using the merge-patch strategy with the given object as base.
+		channelPatchBase := client.MergeFrom(channel.DeepCopy())
+
 		finalizerUtil.AddFinalizer(channel, channelFinalizer)
 
-		err := r.Client.Update(ctx, channel)
+		err := r.Client.Patch(ctx, channel, channelPatchBase)
 		if err != nil {
 			return reconcilerUtil.ManageError(r.Client, channel, err, true)
 		}
@@ -121,9 +124,12 @@ func (r *ChannelReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 			}
 		}
 
+		// Base object for patch, which patches using the merge-patch strategy with the given object as base.
+		channelPatchBase := client.MergeFrom(channel.DeepCopy())
+
 		channel.Status.ID = *channelID
 
-		err = r.Status().Update(ctx, channel)
+		err = r.Status().Patch(ctx, channel, channelPatchBase)
 		if err != nil {
 			log.Error(err, "Failed to update Channel status")
 			return reconcilerUtil.ManageError(r.Client, channel, err, true)
@@ -214,10 +220,13 @@ func (r *ChannelReconciler) finalizeChannel(req ctrl.Request, channel *slackv1al
 		return reconcilerUtil.ManageError(r.Client, channel, err, false)
 	}
 
+	// Base object for patch, which patches using the merge-patch strategy with the given object as base.
+	channelPatchBase := client.MergeFrom(channel.DeepCopy())
+
 	finalizerUtil.DeleteFinalizer(channel, channelFinalizer)
 	log.V(1).Info("Finalizer removed for channel")
 
-	err = r.Client.Update(context.Background(), channel)
+	err = r.Client.Patch(context.Background(), channel, channelPatchBase)
 	if err != nil {
 		return reconcilerUtil.ManageError(r.Client, channel, err, false)
 	}
