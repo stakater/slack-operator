@@ -101,13 +101,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	slackAPIToken := config.ReadSlackTokenSecret(mgr.GetAPIReader())
+	slackAPIToken, slackUserAPIToken := config.ReadSlackTokenSecret(mgr.GetAPIReader())
 
 	if err = (&controllers.ChannelReconciler{
 		Client:       mgr.GetClient(),
 		Log:          ctrl.Log.WithName("controllers").WithName("Channel"),
 		Scheme:       mgr.GetScheme(),
-		SlackService: slack.New(slackAPIToken, ctrl.Log.WithName("service").WithName("Slack")),
+		SlackService: slack.New(slackAPIToken, slackUserAPIToken, ctrl.Log.WithName("service").WithName("Slack")),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Channel")
 		os.Exit(1)

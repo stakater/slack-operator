@@ -34,15 +34,17 @@ type Service interface {
 
 // SlackService structure
 type SlackService struct {
-	log logr.Logger
-	api *slack.Client
+	log     logr.Logger
+	api     *slack.Client
+	userApi *slack.Client
 }
 
 // New creates a new SlackService
-func New(APIToken string, logger logr.Logger) *SlackService {
+func New(APIToken, UserAPIToken string, logger logr.Logger) *SlackService {
 	return &SlackService{
-		api: slack.New(APIToken),
-		log: logger,
+		api:     slack.New(APIToken),
+		userApi: slack.New(UserAPIToken),
+		log:     logger,
 	}
 }
 
@@ -305,24 +307,26 @@ func (s *SlackService) IsChannelUpdated(channel *slackv1alpha1.Channel) (bool, e
 	}
 
 	// Checking if the user is removed
-	for _, userId := range channelUserIDs {
-		user, err := s.api.GetUserInfo(userId)
-		if err != nil {
-			log.Error(err, "Error fetching user info")
-			return false, err
-		}
-
-		if !user.IsBot {
-			found := false
-			for _, email := range userEmails {
-				if email == user.Profile.Email {
-					found = true
-					break
-				}
+	if !channel.Spec.SkipRemoveUsers {
+		for _, userId := range channelUserIDs {
+			user, err := s.api.GetUserInfo(userId)
+			if err != nil {
+				log.Error(err, "Error fetching user info")
+				return false, err
 			}
 
-			if !found {
-				return true, nil
+			if !user.IsBot {
+				found := false
+				for _, email := range userEmails {
+					if email == user.Profile.Email {
+						found = true
+						break
+					}
+				}
+
+				if !found {
+					return true, nil
+				}
 			}
 		}
 	}
@@ -373,7 +377,11 @@ func (s *SlackService) GetChannelByName(name string) (*slack.Channel, error) {
 
 // UnArchiveChannel unarchives the channel
 func (s *SlackService) UnArchiveChannel(channel *slack.Channel) error {
-	err := s.api.UnArchiveConversation(channel.ID)
+	err := s.userApi.UnArchiveConversation(channel.ID)
+	if err != nil {
+		return err
+	}
+	_, _, _, err = s.api.JoinConversation(channel.ID)
 	if err != nil {
 		return err
 	}

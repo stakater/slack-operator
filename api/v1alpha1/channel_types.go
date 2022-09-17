@@ -42,6 +42,14 @@ type ChannelSpec struct {
 	// Topic of the channel
 	// +optional
 	Topic string `json:"topic,omitempty"`
+
+	// Don't remove users if they aren't listed.
+	// +optional
+	SkipRemoveUsers bool `json:"skipRemoveUsers,omitempty"`
+
+	// Don't delete the channel when the object is deleted
+	// +optional
+	SkipDeleteChannel bool `json:"skipDeleteChannel,omitempty"`
 }
 
 // ChannelStatus defines the observed state of Channel

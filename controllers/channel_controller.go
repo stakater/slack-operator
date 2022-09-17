@@ -197,10 +197,12 @@ func (r *ChannelReconciler) updateSlackChannel(ctx context.Context, channel *sla
 		return pkgutil.ManageError(ctx, r.Client, channel, pkgutil.MapErrorListToError(errorlist))
 	}
 
-	err = r.SlackService.RemoveUsers(channelID, users)
-	if err != nil {
-		log.Error(err, "Error removing users from the channel")
-		return reconcilerUtil.ManageError(r.Client, channel, err, false)
+	if !channel.Spec.SkipRemoveUsers {
+		err = r.SlackService.RemoveUsers(channelID, users)
+		if err != nil {
+			log.Error(err, "Error removing users from the channel")
+			return reconcilerUtil.ManageError(r.Client, channel, err, false)
+		}
 	}
 
 	return reconcilerUtil.ManageSuccess(r.Client, channel)
@@ -214,10 +216,14 @@ func (r *ChannelReconciler) finalizeChannel(req ctrl.Request, channel *slackv1al
 	channelID := channel.Status.ID
 	log := r.Log.WithValues("channelID", channelID)
 
-	err := r.SlackService.ArchiveChannel(channelID)
+	if !channel.Spec.SkipDeleteChannel {
+		err := r.SlackService.ArchiveChannel(channelID)
 
-	if err != nil && err.Error() != "channel_not_found" && err.Error() != "already_archived" {
-		return reconcilerUtil.ManageError(r.Client, channel, err, false)
+		if err != nil && err.Error() != "channel_not_found" && err.Error() != "already_archived" {
+			return reconcilerUtil.ManageError(r.Client, channel, err, false)
+		}
+	} else {
+		log.V(1).Info("Not deleting channel. skipDeleteChannel=true")
 	}
 
 	// Base object for patch, which patches using the merge-patch strategy with the given object as base.
@@ -226,7 +232,7 @@ func (r *ChannelReconciler) finalizeChannel(req ctrl.Request, channel *slackv1al
 	finalizerUtil.DeleteFinalizer(channel, channelFinalizer)
 	log.V(1).Info("Finalizer removed for channel")
 
-	err = r.Client.Patch(context.Background(), channel, channelPatchBase)
+	err := r.Client.Patch(context.Background(), channel, channelPatchBase)
 	if err != nil {
 		return reconcilerUtil.ManageError(r.Client, channel, err, false)
 	}

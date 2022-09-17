@@ -45,6 +45,12 @@ spec:
               private:
                 description: Make the channel private or public
                 type: boolean
+              skipDeleteChannel:
+                description: Don't delete the channel when the object is deleted
+                type: boolean
+              skipRemoveUsers:
+                description: Don't remove users if they aren't listed.
+                type: boolean
               topic:
                 description: Topic of the channel
                 type: string
