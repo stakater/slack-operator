@@ -13,9 +13,9 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest 
+    runs-on: ubuntu-latest
     name: Build
-    if: "! contains(toJSON(github.event.commits.*.message), '[skip-ci]')"    
+    if: "! contains(toJSON(github.event.commits.*.message), '[skip-ci]')"
     steps:
     - name: Check out code
       uses: actions/checkout@v2
@@ -27,6 +27,11 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: ${{ env.GOLANG_VERSION }}
+
+    - name: Set Swap Space
+      uses: pierotofy/set-swap-space@master
+      with:
+        swap-size-gb: 10
 
     - name: Lint
       uses: golangci/golangci-lint-action@v2.3.0
@@ -57,7 +62,7 @@ jobs:
       run: |
         kubectl cluster-info
         kubectl create namespace test
-    
+
     - name: Test
       run: make test OPERATOR_NAMESPACE=test USE_EXISTING_CLUSTER=true
 
@@ -67,7 +72,7 @@ jobs:
         sha=${{ github.event.pull_request.head.sha }}
         tag="SNAPSHOT-PR-${{ github.event.pull_request.number }}-${sha:0:8}"
         echo "##[set-output name=GIT_TAG;]$(echo ${tag})"
-    
+
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v1
 

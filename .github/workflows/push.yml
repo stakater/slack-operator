@@ -32,6 +32,11 @@ jobs:
         with:
           go-version: ${{ env.GOLANG_VERSION }}
 
+      - name: Set Swap Space
+        uses: pierotofy/set-swap-space@master
+        with:
+          swap-size-gb: 10
+
       - name: Lint
         uses: golangci/golangci-lint-action@v2.3.0
         with:
@@ -148,7 +153,7 @@ jobs:
 
       - name: Update Chart CRDs
         run: make generate-crds
-                
+
       # Publish helm chart
       - name: Publish Helm chart
         uses: stefanprodan/helm-gh-pages@master
@@ -169,7 +174,7 @@ jobs:
         run: |
           git config --local user.email "stakater@gmail.com"
           git config --local user.name "stakater-user"
-          git status 
+          git status
           git add .
           git commit -m "[skip-ci] Update artifacts" -a
       - name: Push changes
