@@ -1,7 +1,6 @@
 package config
 
 import (
-	"io/ioutil"
 	"os"
 	"time"
 
@@ -48,7 +47,7 @@ func readConfig(filePath string) (*Config, error) {
 	var config Config
 
 	// Read YML
-	source, err := ioutil.ReadFile(filePath)
+	source, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, err
 	}

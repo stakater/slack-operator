@@ -3,7 +3,7 @@ package mock
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -166,13 +166,13 @@ func usersLookupByEmailHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func extractParamValue(r *http.Request, key string) string {
-	buf, bodyErr := ioutil.ReadAll(r.Body)
+	buf, bodyErr := io.ReadAll(r.Body)
 	if bodyErr != nil {
 		return ""
 	}
 
-	rdr1, _ := ioutil.ReadAll(bytes.NewBuffer(buf))
-	rdr2 := ioutil.NopCloser(bytes.NewBuffer(buf))
+	rdr1, _ := io.ReadAll(bytes.NewBuffer(buf))
+	rdr2 := io.NopCloser(bytes.NewBuffer(buf))
 	r.Body = rdr2
 
 	bodyParams := string(rdr1)
