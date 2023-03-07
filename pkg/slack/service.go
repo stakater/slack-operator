@@ -3,6 +3,10 @@ package slack
 import (
 	"fmt"
 	"html"
+	"net/http"
+	"os"
+	"strconv"
+	"time"
 
 	"github.com/go-logr/logr"
 	"github.com/slack-go/slack"
@@ -13,6 +17,34 @@ import (
 const (
 	ChannelAlreadyExistsError string = "A channel with the same name already exists"
 )
+
+var (
+	limitPeriodStr  = os.Getenv("SLACK_API_RATE_LIMIT_PERIOD")
+	requestCountStr = os.Getenv("SLACK_API_RATE_LIMIT_COUNT")
+	limitPeriod     time.Duration
+	requestCount    int
+)
+
+func init() {
+	if limitPeriodStr == "" {
+		limitPeriod = 100 * time.Second
+	} else {
+		var err error
+		limitPeriod, err = time.ParseDuration(limitPeriodStr)
+		if err != nil {
+			panic(err)
+		}
+	}
+	if requestCountStr == "" {
+		requestCount = 50
+	} else {
+		var err error
+		requestCount, err = strconv.Atoi(requestCountStr)
+		if err != nil {
+			panic(err)
+		}
+	}
+}
 
 // Service interface
 type Service interface {
@@ -42,9 +74,13 @@ type SlackService struct {
 // New creates a new SlackService
 func New(APIToken, UserAPIToken string, logger logr.Logger) *SlackService {
 	return &SlackService{
-		api:     slack.New(APIToken),
-		userApi: slack.New(UserAPIToken),
-		log:     logger,
+		api: slack.New(APIToken, slack.OptionHTTPClient(&http.Client{
+			Transport: NewThrottledTransport(limitPeriod, requestCount, http.DefaultTransport),
+		})),
+		userApi: slack.New(UserAPIToken, slack.OptionHTTPClient(&http.Client{
+			Transport: NewThrottledTransport(limitPeriod, requestCount, http.DefaultTransport),
+		})),
+		log: logger,
 	}
 }
 
