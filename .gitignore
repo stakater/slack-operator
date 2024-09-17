@@ -25,3 +25,4 @@ bin
 .local
 testbin
 .vscode
+dist/
