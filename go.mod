@@ -13,7 +13,7 @@ require (
 	github.com/onsi/gomega v1.10.2
 	github.com/prometheus/client_golang v1.8.0 // indirect
 	github.com/prometheus/common v0.15.0 // indirect
-	github.com/slack-go/slack v0.7.2
+	github.com/slack-go/slack v0.14.0
 	github.com/stakater/operator-utils v0.1.13
 	github.com/stretchr/testify v1.6.1
 	go.uber.org/multierr v1.6.0 // indirect
