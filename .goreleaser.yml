@@ -14,10 +14,7 @@ builds:
       - darwin
     goarch:
       - 386
-      - amd64
-      - arm
       - arm64
-      - ppc64le
 
 archives:
 - name_template: "{{ .ProjectName }}_v{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
