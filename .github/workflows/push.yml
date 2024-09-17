@@ -148,7 +148,7 @@ jobs:
 
       - name: Update Chart CRDs
         run: make generate-crds
-                
+
       # Publish helm chart
       - name: Publish Helm chart
         uses: stefanprodan/helm-gh-pages@master
@@ -169,9 +169,10 @@ jobs:
         run: |
           git config --local user.email "stakater@gmail.com"
           git config --local user.name "stakater-user"
-          git status 
+          git status
           git add .
           git commit -m "[skip-ci] Update artifacts" -a
+
       - name: Push changes
         uses: ad-m/github-push-action@master
         with:
