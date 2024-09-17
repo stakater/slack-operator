@@ -15,12 +15,22 @@ builds:
     goarch:
       - 386
       - amd64
-      - arm
       - arm64
-      - ppc64le
+    ignore:
+      - goos: windows
+        goarch: arm64
 
 archives:
-- name_template: "{{ .ProjectName }}_v{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
+  - format: tar.gz
+    # this name template makes the OS and Arch compatible with the results of `uname`
+    name_template: >-
+      {{ .ProjectName }}_v
+      {{- .Version }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
 
 checksum:
   name_template: 'checksums.txt'
